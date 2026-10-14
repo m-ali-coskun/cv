@@ -1,0 +1,420 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+/* Dark mode is driven by `data-theme="dark"` on <html> (set by ThemeProvider). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ───────────── Animatable theme colours ─────────────
+   Registering the accent tokens lets the whole UI cross-fade smoothly
+   when the user switches discipline tabs. */
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #c9f158;
+}
+@property --accent-ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #0b0b0c;
+}
+@property --accent-deep {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #121410;
+}
+@property --glow-1 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #d9f99d;
+}
+@property --glow-2 {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #a7f3d0;
+}
+
+:root {
+  --accent: #c9f158;
+  --accent-ink: #0b0b0c;
+  --accent-deep: #121410;
+  --glow-1: #d9f99d;
+  --glow-2: #a7f3d0;
+
+  /* Derived accent tones */
+  --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
+  --accent-softer: color-mix(in oklab, var(--accent) 9%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
+  --accent-strong: color-mix(in oklab, var(--accent) 82%, var(--ink));
+  /* Accent that stays readable as TEXT on light surfaces */
+  --accent-text: color-mix(in oklab, var(--accent) 62%, #000);
+
+  /* Light palette — tuned to the reference dashboard */
+  --bg: #e7e7e9;
+  --bg-2: #dededf;
+  --shell: #f3f3f4;
+  --surface: #ffffff;
+  --surface-2: #f3f3f5;
+  --surface-3: #e9e9ec;
+  --ink: #0b0b0c;
+  --ink-2: #4b4b52;
+  --ink-3: #8b8b93;
+  --ink-4: #b9b9c0;
+  --line: rgba(10, 10, 12, 0.07);
+  --line-2: rgba(10, 10, 12, 0.12);
+  --night: #0e0e10; /* the black "AI" card */
+  --night-2: #1b1b1f;
+  --on-night: #f5f5f6;
+
+  --danger: #e5484d;
+  --danger-soft: color-mix(in oklab, var(--danger) 14%, transparent);
+  --warning: #f5a524;
+  --warning-soft: color-mix(in oklab, var(--warning) 20%, transparent);
+  --success: #2fb36b;
+  --success-soft: color-mix(in oklab, var(--success) 16%, transparent);
+  --info: #3e8ef7;
+  --info-soft: color-mix(in oklab, var(--info) 15%, transparent);
+
+  /* Liquid glass */
+  --glass-alpha: 0.62;
+  --glass-blur: 22px;
+  --glass-sat: 180%;
+  --glass-bg: rgba(255, 255, 255, var(--glass-alpha));
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-edge: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 1px 1px rgba(0, 0, 0, 0.03), 0 8px 24px -6px rgba(16, 16, 24, 0.08),
+    0 24px 60px -18px rgba(16, 16, 24, 0.1);
+
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  color-scheme: light;
+  transition:
+    --accent 700ms var(--ease-out),
+    --accent-ink 700ms var(--ease-out),
+    --accent-deep 700ms var(--ease-out),
+    --glow-1 900ms var(--ease-out),
+    --glow-2 900ms var(--ease-out);
+}
+
+:root[data-theme='dark'] {
+  --bg: #08080a;
+  --bg-2: #0d0d10;
+  --shell: #0f0f12;
+  --surface: #161619;
+  --surface-2: #1d1d21;
+  --surface-3: #26262b;
+  --ink: #f4f4f5;
+  --ink-2: #b4b4bc;
+  --ink-3: #7d7d87;
+  --ink-4: #4f4f58;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.12);
+  --night: color-mix(in oklab, var(--accent-deep) 55%, #000);
+  --night-2: color-mix(in oklab, var(--accent-deep) 40%, #111);
+  --accent-text: color-mix(in oklab, var(--accent) 88%, #fff);
+
+  --glass-bg: rgba(26, 26, 30, var(--glass-alpha));
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-edge: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 12px 32px -8px rgba(0, 0, 0, 0.55),
+    0 30px 80px -20px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+:root[data-glass='clear'] {
+  --glass-alpha: 0.42;
+  --glass-blur: 28px;
+  --glass-sat: 200%;
+}
+:root[data-glass='solid'] {
+  --glass-alpha: 0.94;
+  --glass-blur: 8px;
+  --glass-sat: 120%;
+}
+
+/* Expose tokens to Tailwind utilities: bg-accent, text-ink-2, border-line … */
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-softer: var(--accent-softer);
+  --color-accent-line: var(--accent-line);
+  --color-accent-text: var(--accent-text);
+  --color-bg: var(--bg);
+  --color-shell: var(--shell);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-on-night: var(--on-night);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --radius-card: var(--radius-xl);
+  --radius-panel: var(--radius-lg);
+  --radius-tile: var(--radius-md);
+
+  --ease-out-expo: var(--ease-out);
+  --ease-ios: var(--ease-ios);
+  --ease-spring: var(--ease-spring);
+
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s var(--ease-out) infinite;
+  --animate-spin-slow: spin 12s linear infinite;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'ss01', 'cv11';
+    letter-spacing: -0.006em;
+    overscroll-behavior-y: none;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+  /* Thin, unobtrusive scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--line-2);
+    border-radius: 99px;
+  }
+}
+
+/* ───────────── Liquid glass ─────────────
+   `.glass`        – frosted surface with specular rim + inner highlight
+   `.glass-strong` – denser variant for floating chrome (topbar, menus)
+   `.glass-pill`   – capsule controls
+   `.liquid`       – adds the animated sheen layer (see LiquidGlass.tsx)   */
+@layer components {
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-edge),
+      inset 0 -1px 0 0 rgba(255, 255, 255, 0.04),
+      var(--glass-shadow);
+    isolation: isolate;
+  }
+  .glass::before {
+    /* specular highlight that curves around the top-left edge */
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 60% at 0% 0%, rgba(255, 255, 255, 0.55), transparent 42%),
+      radial-gradient(80% 50% at 100% 100%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%);
+    mix-blend-mode: soft-light;
+    opacity: 0.9;
+    z-index: -1;
+  }
+  :root[data-theme='dark'] .glass::before {
+    background:
+      radial-gradient(120% 60% at 0% 0%, rgba(255, 255, 255, 0.12), transparent 45%),
+      radial-gradient(80% 50% at 100% 100%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 60%);
+    mix-blend-mode: normal;
+  }
+  .glass-strong {
+    background: color-mix(in oklab, var(--glass-bg) 70%, var(--surface));
+  }
+  .glass-pill {
+    border-radius: 999px;
+  }
+  .glass-night {
+    position: relative;
+    background: color-mix(in oklab, var(--night) 88%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    color: var(--on-night);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 20px 50px -20px color-mix(in oklab, var(--accent-deep) 70%, #000);
+  }
+  .glass-accent {
+    position: relative;
+    background: color-mix(in oklab, var(--accent) 86%, transparent);
+    color: var(--accent-ink);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
+      inset 0 -2px 6px 0 color-mix(in oklab, var(--accent-ink) 12%, transparent),
+      0 10px 30px -10px color-mix(in oklab, var(--accent) 80%, transparent);
+  }
+  /* Solid white card like the reference, still with a glassy rim */
+  .card {
+    position: relative;
+    background: color-mix(in oklab, var(--surface) calc(var(--glass-alpha) * 100% + 30%), transparent);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-edge),
+      var(--glass-shadow);
+  }
+  .tile {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+  }
+  .hairline {
+    border-color: var(--line);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .mask-fade-x {
+    mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  }
+  .mask-fade-b {
+    mask-image: linear-gradient(180deg, #000 70%, transparent);
+  }
+  .shimmer-text {
+    background: linear-gradient(
+      100deg,
+      var(--ink) 20%,
+      color-mix(in oklab, var(--accent) 80%, var(--ink)) 40%,
+      var(--ink) 60%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  .stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--ink) 7%, transparent) 0 6px,
+      transparent 6px 12px
+    );
+  }
+  .dot-grid {
+    background-image: radial-gradient(color-mix(in oklab, var(--ink) 12%, transparent) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(4%, -6%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-5%, 4%, 0) scale(0.94);
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Motion preferences (set by ThemeProvider from settings.motion) */
+:root[data-motion='off'] *,
+:root[data-motion='off'] *::before,
+:root[data-motion='off'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='expressive']) *,
+  :root:not([data-motion='expressive']) *::before {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
