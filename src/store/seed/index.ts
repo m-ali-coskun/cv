@@ -1,23 +1,33 @@
 import type { AppData } from '../index'
-import { conversations, messages } from './chat'
-import { jobs } from './jobs'
-import { decisions, events, invoices, matches, notifications } from './misc'
-import { clients, designers } from './people'
+import { buildChat } from './chat'
+import { resetClock } from './factories'
+import { buildJobs } from './jobs'
+import { buildDecisions, buildEvents, buildInvoices, buildMatches, buildNotifications } from './misc'
+import { buildClients, buildDesigners } from './people'
 
 export type SeedData = Omit<AppData, 'settings' | 'superLikesLeft' | 'seededAt'>
 
-/** Fresh, deep-copied demo dataset (dates are relative to "now"). */
+/**
+ * Fresh demo dataset. Every call rebuilds it relative to the current time, so
+ * "Reset demo" always yields due dates, chats and calendar events that make
+ * sense today.
+ */
 export function createSeed(): SeedData {
-  return structuredClone({
+  resetClock()
+  const designers = buildDesigners()
+  const clients = buildClients()
+  const jobs = buildJobs()
+  const { conversations, messages } = buildChat(jobs)
+  return {
     designers,
     clients,
-    decisions,
-    matches,
+    decisions: buildDecisions(),
+    matches: buildMatches(),
     jobs,
     conversations,
     messages,
-    notifications,
-    invoices,
-    events,
-  })
+    notifications: buildNotifications(),
+    invoices: buildInvoices(),
+    events: buildEvents(),
+  }
 }

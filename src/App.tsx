@@ -19,6 +19,7 @@ const FilesPage = lazy(() => import('@/features/files/FilesPage'))
 const PaymentsPage = lazy(() => import('@/features/payments/PaymentsPage'))
 const AnalyticsPage = lazy(() => import('@/features/analytics/AnalyticsPage'))
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage'))
+const KitPage = lazy(() => import('@/features/_kit/KitPage'))
 
 /**
  * Hash routing keeps deep links working on static hosts (GitHub Pages)
@@ -47,6 +48,7 @@ const router = createHashRouter([
       { path: 'payments', element: <PaymentsPage /> },
       { path: 'analytics', element: <AnalyticsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'kit', element: <KitPage /> },
       { path: '*', element: <Navigate to="/overview" replace /> },
     ],
   },

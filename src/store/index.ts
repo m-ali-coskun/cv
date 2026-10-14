@@ -36,7 +36,35 @@ import {
 
 export * from './types'
 
-const STORE_VERSION = 3
+const STORE_VERSION = 4
+const LAST_ACTIVE_KEY = 'designtab-last-active'
+const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
+
+/**
+ * Demo data is time-relative ("due in 2 days"). When a visitor comes back
+ * after a while, shift every timestamp forward by the time they were away so
+ * the workspace looks exactly as alive as when they left.
+ */
+function shiftDates<T>(value: T, deltaMs: number): T {
+  if (typeof value === 'string') {
+    return (ISO_RE.test(value) ? new Date(new Date(value).getTime() + deltaMs).toISOString() : value) as T
+  }
+  if (Array.isArray(value)) return value.map((v) => shiftDates(v, deltaMs)) as T
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value)) out[k] = shiftDates(v, deltaMs)
+    return out as T
+  }
+  return value
+}
+
+function touchLastActive() {
+  try {
+    localStorage.setItem(LAST_ACTIVE_KEY, new Date().toISOString())
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 export const DEFAULT_SETTINGS: Settings = {
   lang: 'en',
@@ -1032,17 +1060,36 @@ export const useApp = create<AppState>()(
         const old = persisted as Partial<AppData> | undefined
         const fresh = freshData()
         if (version !== STORE_VERSION) {
+          touchLastActive() // fresh seed is already relative to now — don't time-shift it
           return { ...fresh, settings: { ...fresh.settings, ...(old?.settings ?? {}) } } as AppState
         }
         return persisted as AppState
       },
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<AppData>
+        let p = (persisted ?? {}) as Partial<AppData>
+        try {
+          const last = localStorage.getItem(LAST_ACTIVE_KEY)
+          const delta = last ? Date.now() - new Date(last).getTime() : 0
+          if (delta > 60 * 60_000) {
+            const { settings, ...data } = p
+            p = { ...shiftDates(data, delta), settings }
+          }
+        } catch {
+          /* ignore */
+        }
+        touchLastActive()
         return { ...current, ...p, settings: { ...DEFAULT_SETTINGS, ...(p.settings ?? {}) } }
       },
     },
   ),
 )
+
+// Remember when the app was last open (see shiftDates).
+if (typeof window !== 'undefined') {
+  touchLastActive()
+  setInterval(touchLastActive, 60_000)
+  document.addEventListener('visibilitychange', touchLastActive)
+}
 
 // Expose for debugging & e2e tests.
 if (typeof window !== 'undefined') {
