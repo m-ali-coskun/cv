@@ -2,24 +2,37 @@ import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { BadgeCheck, Crown, Heart, MapPin, Sparkles, Star, X, Zap } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { formatMoney } from '@/lib/format'
+import { formatMoney, localeOf } from '@/lib/format'
 import { useLang, useT } from '@/i18n'
 import { Avatar } from '@/components/ui/Avatar'
 import { DisciplineIcon, Pill } from '@/components/ui/Badge'
 import { FolderCard } from '@/components/ui/FolderCard'
 import { Lightbox } from '@/components/ui/Lightbox'
 import { disciplineColor } from '@/theme/disciplines'
-import type { MediaRef } from '@/store/types'
+import type { Lang, MediaRef } from '@/store/types'
 import { daysSince, disciplinesOf, isTopRated, type Person, type Relation } from './model'
 
 // ───────────────────────────── avatar ─────────────────────────────
 
-export function PersonAvatar({ person, size = 40, ring, className }: { person: Person; size?: number; ring?: boolean; className?: string }) {
+/**
+ * Avatar for either side of the marketplace. Designers are round, clients are
+ * brand squircles; `square` turns designers into squircles too. The outer
+ * element always carries the real shape so shadows/rings in `className` fit.
+ */
+export function PersonAvatar({ person, size = 40, ring, className, square }: { person: Person; size?: number; ring?: boolean; className?: string; square?: boolean }) {
   if (person.kind === 'client') {
     const c = person.data
-    return <Avatar kind="brand" name={c.name} color={c.logoColor} seed={c.avatarSeed} size={size} ring={ring} className={className} />
+    return <Avatar kind="brand" name={c.name} color={c.logoColor} seed={c.avatarSeed} size={size} ring={ring} className={cn('rounded-[30%]', className)} />
   }
-  return <Avatar seed={person.data.avatarSeed} media={person.data.avatar} size={size} ring={ring} className={className} />
+  return (
+    <Avatar
+      seed={person.data.avatarSeed}
+      media={person.data.avatar}
+      size={size}
+      ring={ring}
+      className={cn(square ? 'rounded-[30%] [&_img]:rounded-[30%]!' : 'rounded-full', className)}
+    />
+  )
 }
 
 // ───────────────────────────── badges ─────────────────────────────
@@ -106,6 +119,17 @@ export function DisciplineRow({ person, size = 20, max = 4, className }: { perso
   )
 }
 
+/** Whole-unit money ("€70", "3.500 €") — rates and budgets never need cents. */
+export function fmtMoney0(amount: number, currency: 'EUR' | 'USD', lang: Lang, compact = false) {
+  return new Intl.NumberFormat(localeOf(lang), {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: compact ? 1 : 0,
+    minimumFractionDigits: 0,
+    notation: compact ? 'compact' : 'standard',
+  }).format(amount)
+}
+
 export function PriceLabel({ person, className, compact }: { person: Person; className?: string; compact?: boolean }) {
   const t = useT()
   const lang = useLang()
@@ -113,15 +137,17 @@ export function PriceLabel({ person, className, compact }: { person: Person; cla
     const d = person.data
     return (
       <span className={cn('font-mono tabular-nums', className)}>
-        {formatMoney(d.hourlyRate, d.currency, lang)}
+        {fmtMoney0(d.hourlyRate, d.currency, lang)}
         <span className="opacity-60">{t('core.common.perHour')}</span>
       </span>
     )
   }
   const c = person.data
+  // one notation for both ends: "€600 – €3,500" or "$3K – $14K"
+  const short = !!compact && c.budgetRange[1] >= 10000
   return (
     <span className={cn('font-mono tabular-nums', className)}>
-      {formatMoney(c.budgetRange[0], c.currency, lang, compact)}–{formatMoney(c.budgetRange[1], c.currency, lang, true)}
+      {fmtMoney0(c.budgetRange[0], c.currency, lang, short)} – {fmtMoney0(c.budgetRange[1], c.currency, lang, short)}
     </span>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useApp, meIdFor } from '@/store'
+import { useApp } from '@/store'
 import { useRole } from '@/store/selectors'
 import type { CalendarEvent, Client, Designer, Job, MediaRef, TimelineEvent } from '@/store/types'
 import { ME_CLIENT_ID, ME_DESIGNER_ID } from '@/store/types'
@@ -66,17 +66,39 @@ export function useMyEvents(): CalendarEvent[] {
   return useMemo(() => events.filter((e) => e.role === role), [events, role])
 }
 
-export function useMeId() {
-  const role = useRole()
-  return meIdFor(role)
-}
 
-/** Scroll the page to `#attention` when the URL asks for it. */
-export function useHashScroll(hash: string) {
+/**
+ * Scroll the page to e.g. `#attention` when the URL asks for it — also when
+ * the same link is followed again (keyed by the navigation key). Retries a
+ * few times while the lazily-loaded page is still mounting.
+ */
+export function useHashScroll(hash: string, navKey?: string) {
   useEffect(() => {
     if (!hash) return
-    const id = hash.replace('#', '')
-    const t = window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 450)
+    const id = decodeURIComponent(hash.replace('#', ''))
+    let tries = 0
+    let t = 0
+    const attempt = () => {
+      const el = document.getElementById(id)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      else if (tries++ < 10) t = window.setTimeout(attempt, 150)
+    }
+    t = window.setTimeout(attempt, 350)
     return () => window.clearTimeout(t)
-  }, [hash])
+  }, [hash, navKey])
 }
+
+/** Live `matchMedia` flag. */
+export function useMediaQuery(query: string) {
+  const [match, setMatch] = useState(() => (typeof window !== 'undefined' && 'matchMedia' in window ? window.matchMedia(query).matches : false))
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const on = () => setMatch(mq.matches)
+    on()
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [query])
+  return match
+}
+
+export const useIsMobile = () => useMediaQuery('(max-width: 639px)')

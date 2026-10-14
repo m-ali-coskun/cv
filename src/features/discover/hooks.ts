@@ -92,7 +92,7 @@ export function useSwipeActions() {
   )
 
   const decide = useCallback(
-    (p: Person, decision: SwipeDecision, opts?: { from?: Element | null; dir?: -1 | 1 | 0 }) => {
+    (p: Person, decision: SwipeDecision, opts?: { from?: Element | null; dir?: -1 | 1 | 0; quiet?: boolean }) => {
       const app = useApp.getState()
       const personRole: Role = pairForPerson(p).role
       if (personRole !== app.settings.role) return { matched: false as const }
@@ -101,7 +101,9 @@ export function useSwipeActions() {
         decision = 'like'
       }
       // history first, so the deck already knows the exit direction when the card leaves
-      useDiscoverUI.getState().pushHistory(personRole, {
+      const ui = useDiscoverUI.getState()
+      if (ui.returning) ui.setReturning(null)
+      ui.pushHistory(personRole, {
         id: p.data.id,
         decision,
         at: Date.now(),
@@ -116,7 +118,7 @@ export function useSwipeActions() {
       }
       if (!res.matched && decision !== 'pass') {
         if (decision === 'super') fireStars({ from: opts?.from ?? undefined })
-        toast({
+        if (!opts?.quiet) toast({
           title: t(decision === 'super' ? 'discover.toast.superSent' : 'discover.toast.likeSent', { name: p.data.name }),
           description: t('discover.toast.likeSentHint'),
           tone: 'success',

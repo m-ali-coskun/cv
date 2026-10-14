@@ -56,7 +56,7 @@ export function coverOf(job: Job) {
  * Featured job hero (reference: the "1254 Oak Street" card) — an
  * auto-advancing, swipeable carousel over the most active jobs.
  */
-export function HeroCarousel({ jobs, index, onIndex }: { jobs: Job[]; index: number; onIndex: (i: number) => void }) {
+export function HeroCarousel({ jobs, index, onIndex, className }: { jobs: Job[]; index: number; onIndex: (i: number) => void; className?: string }) {
   const t = useT()
   const lang = useLang()
   const navigate = useNavigate()
@@ -87,7 +87,7 @@ export function HeroCarousel({ jobs, index, onIndex }: { jobs: Job[]; index: num
 
   if (!job) {
     return (
-      <Card pad={false} className="flex h-full min-h-[380px] flex-col overflow-hidden p-2.5">
+      <Card pad={false} className={cn('flex h-full min-h-[380px] flex-col overflow-hidden p-2.5', className)}>
         <div className="relative h-40 overflow-hidden rounded-[22px]">
           <GenerativeArt seed="empty-hero" variant="mesh" className="size-full" playBadge={false} />
         </div>
@@ -120,7 +120,7 @@ export function HeroCarousel({ jobs, index, onIndex }: { jobs: Job[]; index: num
       pad={false}
       spotlight
       tilt={3}
-      className="group/hero flex h-full min-h-[420px] flex-col overflow-hidden p-2.5"
+      className={cn('group/hero flex h-full min-h-[440px] flex-col overflow-hidden p-2.5', className)}
       onPointerEnter={(e) => e.pointerType === 'mouse' && setPaused(true)}
       onPointerLeave={(e) => e.pointerType === 'mouse' && setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -285,7 +285,7 @@ function HeroBody({
       </div>
       <ProgressBar value={job.progress} showLabel className="mt-3" height={7} />
       <div className="mt-3 grid grid-cols-3 divide-x divide-[var(--line)] rounded-[14px] border border-[var(--line-2)]">
-        <HeroTile label={t('common.designer')} value={designer?.name.split(' ')[0] ?? '—'} />
+        <HeroTile label={t('core.common.designer')} value={designer?.name.split(' ')[0] ?? '—'} />
         <HeroTile label={t('core.common.stage')} value={t(`core.status.${job.status}`)} />
         <HeroTile
           label={t('core.common.due')}

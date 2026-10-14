@@ -32,6 +32,10 @@ export const headlineOf = (p: Person) => (p.kind === 'designer' ? p.data.headlin
 export const subtitleOf = (p: Person) => (p.kind === 'designer' ? p.data.handle : `${p.data.contactName} · ${p.data.contactRole}`)
 export const isVerified = (p: Person) => p.data.verified
 export const isTopRated = (p: Person) => (p.kind === 'designer' ? p.data.topRated : p.data.rating >= 4.8 && p.data.hiresCount >= 15)
+/** Rating to display — a designer without reviews has no meaningful rating yet. */
+export const ratingOf = (p: Person): number | null =>
+  p.kind === 'designer' ? (p.data.reviewsCount > 0 && p.data.rating > 0 ? p.data.rating : null) : p.data.rating > 0 ? p.data.rating : null
+
 export const isFresh = (p: Person) => p.data.isNew || (p.kind === 'designer' && !!p.data.registeredInApp)
 
 /** Searchable tags: skills + tools for designers, industry + brief titles for clients. */
