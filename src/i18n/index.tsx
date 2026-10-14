@@ -7,6 +7,7 @@ import overview from './locales/overview'
 import discover from './locales/discover'
 import network from './locales/network'
 import jobs from './locales/jobs'
+import job from './locales/job'
 import brief from './locales/brief'
 import messages from './locales/messages'
 import profile from './locales/profile'
@@ -28,6 +29,7 @@ const NAMESPACES: Record<string, Namespace> = {
   discover,
   network,
   jobs,
+  job,
   brief,
   messages,
   profile,
