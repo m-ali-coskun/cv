@@ -21,6 +21,8 @@ await page.evaluate(({ lang, role, theme, disc, onboard }) => {
   const s = window.__designTab.getState()
   s.setSettings({ lang: lang || 'en', role: role || 'client', theme: theme || 'light', discipline: disc || 'all', onboardingDone: onboard !== '0' })
 }, { lang: process.env.LANG_UI, role: process.env.ROLE, theme: process.env.THEME, disc: process.env.DISC, onboard: process.env.ONBOARD })
+await page.reload()
+await page.waitForTimeout(800)
 for (const r of routes) {
   await page.goto(base + '#' + r)
   await page.waitForTimeout(Number(process.env.WAIT ?? 1800))
