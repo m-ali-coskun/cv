@@ -45,6 +45,37 @@ export function useFillHeight(reserve: number, min = 320) {
   return [ref, height] as const
 }
 
+/**
+ * Visual viewport box (top offset + height) and whether the on-screen
+ * keyboard is probably open — keeps fixed layers above the keyboard.
+ */
+export function useVisualViewport() {
+  const read = () => {
+    const vv = window.visualViewport
+    const height = vv?.height ?? window.innerHeight
+    return { top: vv?.offsetTop ?? 0, height, keyboard: window.innerHeight - height > 140 }
+  }
+  const [box, setBox] = useState(read)
+  useEffect(() => {
+    const vv = window.visualViewport
+    const update = () =>
+      setBox((b) => {
+        const n = read()
+        return n.top === b.top && n.height === b.height && n.keyboard === b.keyboard ? b : n
+      })
+    update()
+    vv?.addEventListener('resize', update)
+    vv?.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    return () => {
+      vv?.removeEventListener('resize', update)
+      vv?.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+  return box
+}
+
 /** Re-renders every `ms` (live clocks / relative times). */
 export function useNow(ms = 30_000) {
   const [now, setNow] = useState(() => Date.now())

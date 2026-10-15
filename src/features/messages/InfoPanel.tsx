@@ -8,7 +8,7 @@ import { dueLabel, shortDate } from '@/lib/dates'
 import { mediaIsImage, mediaIsVideo } from '@/lib/files'
 import { useLang, useT } from '@/i18n'
 import { useApp } from '@/store'
-import { useMyMatches, type ConversationView } from '@/store/selectors'
+import { useMeId, useMyMatches, type ConversationView } from '@/store/selectors'
 import { toast } from '@/store/toasts'
 import type { Job, MediaRef, Message } from '@/store/types'
 import { MediaView } from '@/components/art/MediaView'
@@ -19,7 +19,9 @@ import { Toggle } from '@/components/ui/Toggle'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { FolderCard } from '@/components/ui/FolderCard'
-import { clock, isDesignerP, localClock, personLine, previewOf, tzOf, type Presence } from './model'
+import { Gauge } from '@/components/ui/Gauge'
+import { RecapCard } from './Recap'
+import { CLOSED, clock, isDesignerP, localClock, personLine, previewOf, tzOf, type Presence } from './model'
 import { useNow } from './hooks'
 import { useMessagesPrefs } from './store'
 import { Eyebrow, JobChip, PersonAvatar } from './ui'
@@ -32,6 +34,7 @@ export function InfoPanel({
   onOpenMedia,
   onJumpTo,
   onCall,
+  onDraft,
   className,
 }: {
   view: ConversationView
@@ -41,12 +44,15 @@ export function InfoPanel({
   onOpenMedia: (items: MediaRef[], index: number, origin?: (i: number) => Element | null | undefined) => void
   onJumpTo: (id: string) => void
   onCall: () => void
+  /** Put a suggested reply into the composer. */
+  onDraft: (text: string) => void
   className?: string
 }) {
   const t = useT()
   const lang = useLang()
   const navigate = useNavigate()
   const role = useApp((s) => s.settings.role)
+  const meId = useMeId()
   const togglePin = useApp((s) => s.togglePinConversation)
   const toggleMute = useApp((s) => s.toggleMuteConversation)
   const toggleArchive = useApp((s) => s.toggleArchiveConversation)
@@ -90,7 +96,7 @@ export function InfoPanel({
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)}>
-      <motion.div variants={stagger(0.06, 0.05)} initial="hidden" animate="show" className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3">
+      <motion.div data-msg-info variants={stagger(0.06, 0.05)} initial="hidden" animate="show" className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3">
         {/* profile */}
         <motion.section variants={item} className="relative overflow-hidden rounded-[24px] bg-[var(--surface-2)] p-4 text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[radial-gradient(60%_100%_at_50%_0%,var(--accent-soft),transparent)]" />
@@ -149,12 +155,24 @@ export function InfoPanel({
           </div>
         </motion.section>
 
+        {/* AI recap */}
+        <motion.section variants={item}>
+          <RecapCard view={view} jobs={jobs} role={role} meId={meId} onDraft={onDraft} />
+        </motion.section>
+
         {/* stats */}
         <motion.section variants={item} className="grid grid-cols-3 gap-1.5">
           <Stat label={t('messages.info.messages')} value={view.messages.length} />
           <Stat label={t('messages.info.files')} value={files.length} />
           <Stat label={t('messages.info.voice')} value={voiceCount} />
         </motion.section>
+
+        {/* shared progress gauge */}
+        {jobs.length > 0 && (
+          <motion.section variants={item}>
+            <ProgressGauge jobs={jobs} onOpen={(id) => navigate(`/jobs/${id}`)} />
+          </motion.section>
+        )}
 
         {/* jobs */}
         <motion.section variants={item}>
@@ -190,7 +208,9 @@ export function InfoPanel({
                     <div className="mt-1.5 flex items-center justify-between font-mono text-[10.5px] text-ink-3">
                       <span>{j.progress}%</span>
                       <span>
-                        {shortDate(j.dueAt, lang)} · {dueLabel(j.dueAt, lang)}
+                        {CLOSED.includes(j.status)
+                          ? `${shortDate(j.approvedAt ?? j.dueAt, lang)} · ${t(`core.status.${j.status}`)}`
+                          : `${shortDate(j.dueAt, lang)} · ${dueLabel(j.dueAt, lang)}`}
                       </span>
                     </div>
                   </motion.button>
@@ -286,6 +306,59 @@ export function InfoPanel({
           </motion.p>
         )}
       </motion.div>
+    </div>
+  )
+}
+
+/** Lime tick gauge (reference: "94% ready to submit") for the shared work. */
+function ProgressGauge({ jobs, onOpen }: { jobs: Job[]; onOpen: (id: string) => void }) {
+  const t = useT()
+  const live = jobs.filter((j) => j.status !== 'declined' && j.status !== 'cancelled')
+  const avg = live.length ? Math.round(live.reduce((n, j) => n + j.progress, 0) / live.length) : 0
+  const deliverables = live.flatMap((j) => j.deliverables)
+  const done = deliverables.filter((d) => d.done).length
+  const focus = live.find((j) => !['approved'].includes(j.status)) ?? live[0]
+  const focusDone = focus ? focus.deliverables.filter((d) => d.done).length : 0
+  if (!live.length) return null
+  return (
+    <div
+      className="glass-accent relative overflow-hidden rounded-[24px] px-3 pb-3 pt-4"
+      // ticks + captions follow the accent's own ink (dark on lime, light on deep accents)
+      style={
+        {
+          '--ink': 'var(--accent-ink)',
+          '--ink-2': 'color-mix(in oklab, var(--accent-ink) 74%, transparent)',
+          '--ink-3': 'color-mix(in oklab, var(--accent-ink) 56%, transparent)',
+        } as React.CSSProperties
+      }
+    >
+      <div className="relative flex items-center justify-between px-1">
+        <p className="text-[13.5px] font-medium tracking-[-0.01em]">{t('messages.info.gaugeTitle')}</p>
+        <span className="font-mono text-[10.5px] opacity-70">{t('messages.info.gaugeJobs', { count: live.length })}</span>
+      </div>
+      <Gauge
+        value={avg}
+        size={230}
+        tone="ink"
+        className="relative mx-auto mt-1"
+        label={t('messages.info.gaugeLabel')}
+        sublabel={t('messages.info.gaugeDeliverables', { done, total: deliverables.length })}
+        ariaLabel={t('messages.info.gaugeTitle')}
+      />
+      {focus && (
+        <motion.button
+          type="button"
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onOpen(focus.id)}
+          className="relative mt-3 flex w-full items-center gap-2 rounded-full bg-[var(--accent-ink)] px-3.5 py-2 text-left text-[12.5px] text-[var(--accent)] shadow-[0_8px_20px_-10px_rgba(0,0,0,.5)]"
+        >
+          <span className="min-w-0 flex-1 truncate font-medium">{focus.title}</span>
+          <span className="shrink-0 font-mono text-[11px] opacity-70">
+            {focusDone} / {focus.deliverables.length} {t('messages.info.gaugeDone')}
+          </span>
+        </motion.button>
+      )}
     </div>
   )
 }

@@ -107,9 +107,11 @@ export function ThreadHeader({
         </button>
 
         <div className="flex shrink-0 items-center gap-1">
-          <IconButton label={t('messages.thread.search')} variant={searchOpen ? 'primary' : 'ghost'} size="md" onClick={onSearch} className="max-sm:size-9">
-            <Search className="size-[18px]" />
-          </IconButton>
+          <span className="hidden @sm:inline-flex">
+            <IconButton label={t('messages.thread.search')} variant={searchOpen ? 'primary' : 'ghost'} size="md" onClick={onSearch} className="max-sm:size-9">
+              <Search className="size-[18px]" />
+            </IconButton>
+          </span>
           <span className="hidden items-center gap-1 @2xl:flex">
             <Tooltip content={c.pinned ? t('messages.action.unpin') : t('messages.action.pin')} side="bottom">
               <IconButton label={c.pinned ? t('messages.action.unpin') : t('messages.action.pin')} variant={c.pinned ? 'soft' : 'ghost'} onClick={() => togglePin(c.id)}>
@@ -149,6 +151,7 @@ export function ThreadHeader({
                 </IconButton>
               )}
               items={[
+                { label: t('messages.thread.search'), icon: <Search />, onClick: onSearch, active: searchOpen },
                 { label: c.pinned ? t('messages.action.unpin') : t('messages.action.pin'), icon: c.pinned ? <PinOff /> : <Pin />, onClick: () => togglePin(c.id) },
                 { label: c.muted ? t('messages.action.unmute') : t('messages.action.mute'), icon: c.muted ? <Volume2 /> : <BellOff />, onClick: () => toggleMute(c.id) },
                 { label: c.archived ? t('messages.action.unarchive') : t('messages.action.archive'), icon: c.archived ? <ArchiveRestore /> : <Archive />, onClick: () => toggleArchive(c.id) },

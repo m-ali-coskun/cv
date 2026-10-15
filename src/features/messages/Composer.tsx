@@ -42,6 +42,8 @@ import { POPOVER_SURFACE } from './ui'
 export interface ComposerHandle {
   addFiles: (files: File[]) => void
   focus: () => void
+  /** Replace the draft (AI "Draft reply") and focus the field. */
+  setText: (text: string) => void
 }
 
 interface ComposerProps {
@@ -91,6 +93,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
   const textRef = useRef(text)
   textRef.current = text
   const draftBeforeEdit = useRef<string | null>(null)
+  /** Bumps when an AI draft lands → shimmer over the field. */
+  const [drafted, setDrafted] = useState(0)
 
   // ── drafts: debounce to the store, flush on unmount (conversation switch)
   useEffect(() => {
@@ -170,7 +174,21 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
     })
   }
 
-  useImperativeHandle(ref, () => ({ addFiles: (f) => void addFiles(f), focus }), [addFiles, focus])
+  useImperativeHandle(
+    ref,
+    () => ({
+      addFiles: (f) => void addFiles(f),
+      focus,
+      setText: (value: string) => {
+        draftBeforeEdit.current = null // an AI draft replaces whatever an edit would restore
+        setText(value)
+        setDrafted((n) => n + 1)
+        requestAnimationFrame(focus)
+      },
+    }),
+    [addFiles, focus],
+  )
+
 
   const insert = (s: string) => {
     const el = taRef.current
@@ -377,6 +395,18 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
           editing && 'shadow-[0_0_0_2px_var(--accent-line),var(--glass-shadow)]',
         )}
       >
+        {/* AI draft shimmer */}
+        {drafted > 0 && (
+          <span aria-hidden className="pointer-events-none absolute inset-0 z-[2] overflow-hidden rounded-[26px]">
+            <motion.span
+              key={drafted}
+              className="absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(100deg,transparent,color-mix(in_oklab,var(--accent)_55%,transparent),transparent)]"
+              initial={{ x: '0%', opacity: 1 }}
+              animate={{ x: '420%', opacity: [1, 1, 0] }}
+              transition={{ duration: 1.1, ease: EASE_OUT }}
+            />
+          </span>
+        )}
         {/* reply / edit banner */}
         <AnimatePresence initial={false}>
           {(replyTo || editing) && (

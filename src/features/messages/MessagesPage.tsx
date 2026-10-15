@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
 import { Compass, Inbox, MessagesSquare, SearchX, SquarePen } from 'lucide-react'
@@ -15,7 +16,7 @@ import { ConversationList } from './ConversationList'
 import { NewMessageModal } from './NewMessageModal'
 import { Thread } from './Thread'
 import { conversationMatchesDiscipline } from './model'
-import { useFillHeight, useMediaQuery } from './hooks'
+import { useFillHeight, useMediaQuery, useVisualViewport } from './hooks'
 import { ChatKeyframes } from './ui'
 
 /**
@@ -37,8 +38,6 @@ export default function MessagesPage() {
   const [newOpen, setNewOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [fillRef, height] = useFillHeight(isLg ? 40 : 90)
-  const dragControls = useDragControls()
-
   const view = id ? all.find((v) => v.conversation.id === id) : undefined
   const jobById = useMemo(() => new Map(jobs.map((j) => [j.id, j])), [jobs])
   const ordered = useMemo(
@@ -140,52 +139,86 @@ export default function MessagesPage() {
           )}
         </div>
       ) : (
-        <div ref={fillRef} style={{ height }} className="relative -mb-9 overflow-hidden rounded-[28px]">
-          <AnimatePresence initial={false}>
-            {!id ? (
-              <motion.div
-                key="list"
-                className="absolute inset-0 flex"
-                initial={{ x: '-26%', opacity: 0.4, filter: 'blur(4px)' }}
-                animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ x: '-26%', opacity: 0.4, filter: 'blur(4px)' }}
-                transition={{ duration: 0.5, ease: EASE_IOS }}
-              >
-                <Glass className="flex min-w-0 flex-1 flex-col overflow-hidden">{list}</Glass>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="thread"
-                className="absolute inset-0 z-[2] flex"
-                initial={{ x: '104%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '104%' }}
-                transition={{ duration: 0.5, ease: EASE_IOS }}
-                drag="x"
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={{ left: 0, right: 0.85 }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x > 90 || info.velocity.x > 500) navigate('/messages')
-                }}
-              >
-                {/* iOS-style edge swipe to go back */}
-                <div aria-hidden className="absolute inset-y-0 left-0 z-[30] w-4 touch-none" onPointerDown={(e) => dragControls.start(e)} />
-                {view ? (
-                  <Thread key={view.conversation.id} view={view} onBack={() => navigate('/messages')} />
-                ) : (
-                  <Glass className="flex flex-1 items-center justify-center">{notFound}</Glass>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <>
+          {/* phone: the inbox stays in the page; an open thread is a full-height layer above the shell chrome */}
+          <div ref={fillRef} style={{ height }} className="relative -mb-9 overflow-hidden rounded-[28px]">
+            <motion.div
+              className="absolute inset-0 flex"
+              initial={false}
+              animate={id ? { x: '-18%', scale: 0.96, opacity: 0.5 } : { x: 0, scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: EASE_IOS }}
+            >
+              <Glass className="flex min-w-0 flex-1 flex-col overflow-hidden">{list}</Glass>
+            </motion.div>
+          </div>
+          <PhoneThreadLayer open={!!id} onBack={() => navigate('/messages')}>
+            {view ? <Thread key={view.conversation.id} view={view} onBack={() => navigate('/messages')} /> : <Glass className="flex flex-1 items-center justify-center">{notFound}</Glass>}
+          </PhoneThreadLayer>
+        </>
       )}
 
       <NewMessageModal open={newOpen} onClose={() => setNewOpen(false)} />
       <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>
+  )
+}
+
+/**
+ * Phone thread layer: slides in over the inbox like an iOS push, covers the
+ * shell header (more room for the conversation), keeps the floating tab bar
+ * visible below the composer and follows the on-screen keyboard.
+ */
+function PhoneThreadLayer({ open, onBack, children }: { open: boolean; onBack: () => void; children: ReactNode }) {
+  const vv = useVisualViewport()
+  const dragControls = useDragControls()
+
+  // lock the page behind the layer
+  useEffect(() => {
+    if (!open) return
+    const html = document.documentElement
+    const prev = html.style.overflow
+    html.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prev
+    }
+  }, [open])
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div key="phone-thread" className="fixed inset-x-0 z-[35] flex flex-col" style={{ top: vv.top, height: vv.height }}>
+          <motion.div
+            aria-hidden
+            className="absolute inset-0 bg-[color-mix(in_oklab,var(--bg)_62%,transparent)] backdrop-blur-2xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.35 } }}
+            transition={{ duration: 0.35 }}
+          />
+          <motion.div
+            className="relative flex min-h-0 flex-1 px-2.5 pt-2.5"
+            style={{ paddingBottom: vv.keyboard ? 8 : 'calc(86px + env(safe-area-inset-bottom))' }}
+            initial={{ x: '104%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '104%' }}
+            transition={{ duration: 0.5, ease: EASE_IOS }}
+            drag="x"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0, right: 0.85 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x > 90 || info.velocity.x > 500) onBack()
+            }}
+          >
+            {/* iOS-style edge swipe to go back */}
+            <div aria-hidden className="absolute inset-y-0 left-0 z-[30] w-4 touch-none" onPointerDown={(e) => dragControls.start(e)} />
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   )
 }
 

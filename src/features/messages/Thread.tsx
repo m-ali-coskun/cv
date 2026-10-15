@@ -24,7 +24,8 @@ import { CallOverlay } from './CallOverlay'
 import { CLOSED, buildThread, dayLabel, mmss, presenceOf, quickReplies, type ThreadItem } from './model'
 import { blip, useCopy, useDeleteWithUndo, useMediaQuery, useNow } from './hooks'
 import { useMessagesPrefs, usePendingDeletes } from './store'
-import { PersonAvatar, POPOVER_SURFACE } from './ui'
+import { PersonAvatar } from './ui'
+import { SavedBar, ThreadIntro } from './ThreadExtras'
 
 const INITIAL_ANIMATED = 14
 
@@ -125,6 +126,16 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
     return true
   }, [])
 
+  // Floating day pill (Telegram-style): shows the day under the top edge while scrolling.
+  const [floatDay, setFloatDay] = useState<string | null>(null)
+  const floatTimer = useRef<number | null>(null)
+  /** Last user scroll gesture — programmatic scrolls (auto-follow, jumps) don't show the pill. */
+  const userScrollAt = useRef(0)
+  const markUserScroll = () => {
+    userScrollAt.current = Date.now()
+  }
+  useEffect(() => () => void (floatTimer.current && window.clearTimeout(floatTimer.current)), [])
+
   const onScroll = () => {
     const el = scrollRef.current
     if (!el) return
@@ -132,6 +143,17 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
     atBottom.current = d < 96
     setShowJump(d > 320)
     if (d < 96) setNewCount(0)
+    if (Date.now() - userScrollAt.current > 1200) return
+    // which day section is under the top edge (only once its inline separator scrolled away)
+    let current: string | null = null
+    const top = el.getBoundingClientRect().top
+    for (const sec of el.querySelectorAll<HTMLElement>('section[data-day]')) {
+      if (sec.getBoundingClientRect().top - top <= -8) current = sec.dataset.day ?? null
+      else break
+    }
+    setFloatDay(current)
+    if (floatTimer.current) window.clearTimeout(floatTimer.current)
+    floatTimer.current = window.setTimeout(() => setFloatDay(null), 1300)
   }
 
   useLayoutEffect(() => {
@@ -164,6 +186,23 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
   useEffect(() => {
     if (typing && atBottom.current) requestAnimationFrame(() => scrollToBottom(true))
   }, [typing, scrollToBottom])
+
+  // Stay pinned to the bottom while content grows (reactions, media loading, layout springs).
+  const contentRef = useRef<HTMLDivElement>(null)
+  const hasMessages = messages.length > 0
+  useEffect(() => {
+    const el = contentRef.current
+    const box = scrollRef.current
+    if (!el || !box || typeof ResizeObserver === 'undefined') return
+    let last = el.offsetHeight
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight
+      if (h > last && atBottom.current) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' })
+      last = h
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [hasMessages])
 
   // ── search
   const [searchOpen, setSearchOpen] = useState(false)
@@ -221,6 +260,7 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
   }
 
   const saved = useMemo(() => new Set(savedList), [savedList])
+  const savedHere = useMemo(() => messages.filter((m) => saved.has(m.id)).reverse(), [messages, saved])
 
   const ctx: ThreadCtxValue = useMemo(
     () => ({
@@ -320,6 +360,11 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
       onOpenMedia={(items, index, origin) => setLightbox({ items, index, origin })}
       onJumpTo={jumpTo}
       onCall={startCall}
+      onDraft={(text) => {
+        setDrawerOpen(false)
+        setEditing(null)
+        composer.current?.setText(text)
+      }}
     />
   )
 
@@ -418,11 +463,20 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
           )}
         </AnimatePresence>
 
+        <SavedBar messages={savedHere} onJump={jumpTo} onRemove={(m) => ctx.toggleSave(m)} />
+
         {/* messages */}
         <div className="relative min-h-0 flex-1">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_50%_at_100%_0%,var(--accent-softer),transparent_70%),radial-gradient(60%_45%_at_0%_100%,var(--accent-softer),transparent_70%)]" />
           <div aria-hidden className="dot-grid pointer-events-none absolute inset-0 opacity-40 [mask-image:linear-gradient(180deg,transparent,#000_30%,#000_70%,transparent)]" />
-          <div ref={scrollRef} onScroll={onScroll} className="absolute inset-0 overflow-y-auto overscroll-contain px-2.5 pb-4 pt-12 sm:px-5" role="log" aria-live="polite" aria-label={t('messages.thread.log')}>
+          <div
+            ref={scrollRef}
+            onScroll={onScroll}
+            onWheel={markUserScroll}
+            onTouchMove={markUserScroll}
+            onPointerDown={markUserScroll}
+            onKeyDown={markUserScroll}
+            className="absolute inset-0 overflow-y-auto overscroll-contain px-2.5 pb-4 pt-12 sm:px-5" role="log" aria-live="polite" aria-label={t('messages.thread.log')}>
             {messages.length === 0 ? (
               <EmptyThread
                 person={view.counterpart}
@@ -435,17 +489,25 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
                 }}
               />
             ) : (
-              <div>
+              <div ref={contentRef}>
+                <ThreadIntro
+                  person={view.counterpart}
+                  since={c.createdAt < (messages[0]?.createdAt ?? c.createdAt) ? c.createdAt : messages[0]?.createdAt}
+                  jobsCount={linkedJobs.length}
+                  role={role}
+                  onProfile={() => navigate(`/network/${view.counterpartId}`)}
+                  onBrief={() => navigate(`/brief/new?designer=${view.counterpartId}`)}
+                />
                 {sections.map((sec) => (
-                  <section key={sec.key} className="relative">
-                    <div className="pointer-events-none sticky top-1 z-[4] flex justify-center py-2">
+                  <section key={sec.key} data-day={sec.iso} className="relative">
+                    <div className="flex justify-center py-2">
                       <motion.span
                         initial={{ opacity: 0, y: -6, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={spring.snappy}
-                        className={cn('glass glass-pill pointer-events-auto px-3 py-1 text-[11.5px] font-medium text-ink-2 shadow-[0_6px_16px_-8px_rgba(0,0,0,.25)]', POPOVER_SURFACE)}
+                        className="rounded-full bg-[var(--surface)] px-3 py-1 text-[11.5px] font-medium text-ink-2 shadow-[inset_0_1px_0_var(--glass-edge),0_0_0_1px_var(--line),0_6px_16px_-8px_rgba(0,0,0,.25)] dark:bg-[var(--surface-2)]"
                       >
-                        <span className="relative z-[1]">{dayLabel(sec.iso, lang, t)}</span>
+                        {dayLabel(sec.iso, lang, t)}
                       </motion.span>
                     </div>
                     <AnimatePresence initial={false}>
@@ -478,6 +540,33 @@ export function Thread({ view, onBack }: { view: ConversationView; onBack?: () =
               </div>
             )}
           </div>
+
+          {/* floating day pill while scrolling */}
+          <AnimatePresence>
+            {floatDay && (
+              <motion.div
+                key="float-day"
+                initial={{ opacity: 0, y: -10, scale: 0.9, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -8, scale: 0.94, filter: 'blur(4px)', transition: { duration: 0.2 } }}
+                transition={spring.snappy}
+                className="pointer-events-none absolute inset-x-0 top-2 z-[6] flex justify-center"
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={floatDay}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -10, opacity: 0 }}
+                    transition={spring.snappy}
+                    className="rounded-full bg-ink px-3 py-1 text-[11.5px] font-medium text-[var(--surface)] shadow-[0_10px_24px_-10px_rgba(0,0,0,.6)] dark:bg-[var(--surface-3)] dark:text-ink"
+                  >
+                    {dayLabel(floatDay, lang, t)}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* jump to latest */}
           <AnimatePresence>

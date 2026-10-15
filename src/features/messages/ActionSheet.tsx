@@ -80,7 +80,7 @@ export function ActionSheet({ message, onClose }: { message: Message | null; onC
 
           <div className="mt-4 overflow-hidden rounded-[22px] bg-[var(--surface-2)]">
             <SheetRow icon={<CornerUpLeft />} label={t('messages.action.reply')} onClick={run(() => ctx.reply(m))} />
-            {!!m.text && <SheetRow icon={<Copy />} label={t('messages.action.copy')} onClick={run(() => ctx.copy(m))} />}
+            {!!m.text && m.kind !== 'voice' && <SheetRow icon={<Copy />} label={t('messages.action.copy')} onClick={run(() => ctx.copy(m))} />}
             <SheetRow icon={saved ? <BookmarkCheck /> : <Bookmark />} label={saved ? t('messages.action.unsave') : t('messages.action.save')} onClick={run(() => ctx.toggleSave(m))} />
             {m.jobId && <SheetRow icon={<ArrowUpRight />} label={t('messages.action.openJob', { id: m.jobId })} onClick={run(() => ctx.openJob(m.jobId!))} />}
             {canEdit && <SheetRow icon={<Pencil />} label={t('messages.action.edit')} onClick={run(() => ctx.edit(m))} />}

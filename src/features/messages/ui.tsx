@@ -132,8 +132,13 @@ export function JobChip({ job, onClick, className, active }: { job: Job; onClick
   )
 }
 
-/** Popovers nested in glass lose their backdrop blur — give them a near-solid surface. */
-export const POPOVER_SURFACE = 'bg-[color-mix(in_oklab,var(--surface)_96%,transparent)] dark:bg-[color-mix(in_oklab,var(--surface-2)_97%,transparent)]'
+/**
+ * Popovers nested in glass (composer, animated bubbles) sit inside another
+ * backdrop root, so their own backdrop blur can't see the messages behind and
+ * any translucency leaks text through. Give them a solid surface + glassy rim.
+ */
+export const POPOVER_SURFACE =
+  'bg-[var(--surface)] dark:bg-[var(--surface-2)] shadow-[inset_0_1px_0_var(--glass-edge),0_2px_6px_rgba(0,0,0,.06),0_24px_60px_-18px_rgba(16,16,24,.35)] dark:shadow-[inset_0_1px_0_var(--glass-edge),0_24px_60px_-18px_rgba(0,0,0,.8)]'
 
 /** Small uppercase mono section label (reference: "PERMITTING"). */
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {

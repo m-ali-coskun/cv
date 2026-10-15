@@ -88,6 +88,22 @@ export function ConversationList({
     return out
   }, [scoped, filter, q, activeId, jobById])
 
+  const onlineNow = useMemo(() => {
+    if (filter !== 'all' || q) return []
+    return scoped
+      .filter((v) => !v.conversation.archived)
+      .filter((v) => {
+        let lastFromThem: string | undefined
+        for (let i = v.messages.length - 1; i >= 0; i--)
+          if (v.messages[i].senderId === v.counterpartId) {
+            lastFromThem = v.messages[i].createdAt
+            break
+          }
+        return presenceOf(v.counterpartId, lastFromThem, !!typing[v.conversation.id], now) === 'online'
+      })
+      .slice(0, 12)
+  }, [scoped, filter, q, typing, now])
+
   const pinned = filter === 'all' && !q ? shown.filter((x) => x.view.conversation.pinned) : []
   const rest = filter === 'all' && !q ? shown.filter((x) => !x.view.conversation.pinned) : shown
 
@@ -195,7 +211,7 @@ export function ConversationList({
         </label>
 
         <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
-          <Segmented size="sm" value={filter} onChange={setFilter} options={filterOptions} layoutId="msg-filter" />
+          <Segmented size="sm" value={filter} onChange={setFilter} options={filterOptions} layoutId="msg-filter" className="flex min-w-full [&>button]:flex-1 [&>button]:px-1.5" />
         </div>
 
         <AnimatePresence>
@@ -242,6 +258,11 @@ export function ConversationList({
           />
         ) : (
           <ul className="relative">
+            {onlineNow.length > 0 && (
+              <li>
+                <ActiveStrip views={onlineNow} activeId={activeId} typing={typing} onSelect={onSelect} />
+              </li>
+            )}
             {pinned.length > 0 && <SectionLabel icon={<Pin className="size-3" />}>{t('messages.list.pinned')}</SectionLabel>}
             <AnimatePresence initial={true} mode="popLayout">
               {renderRows(pinned)}
@@ -263,6 +284,88 @@ function SectionLabel({ children, icon }: { children: ReactNode; icon?: ReactNod
       {icon}
       {children}
     </li>
+  )
+}
+
+/** Story-style row of counterparts who are online right now. */
+function ActiveStrip({
+  views,
+  activeId,
+  typing,
+  onSelect,
+}: {
+  views: ConversationView[]
+  activeId?: string
+  typing: Record<string, boolean>
+  onSelect: (id: string) => void
+}) {
+  const t = useT()
+  return (
+    <div className="pb-1 pt-1">
+      <div className="flex items-center gap-1.5 px-3 pb-2 font-mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-ink-3">
+        <span className="relative flex size-1.5">
+          <span className="msg-anim absolute inset-0 animate-ping rounded-full bg-success opacity-60" />
+          <span className="relative size-1.5 rounded-full bg-success" />
+        </span>
+        {t('messages.active.title')}
+        <span className="ml-auto">{views.length}</span>
+      </div>
+      <div className="no-scrollbar mask-fade-x flex gap-1 overflow-x-auto px-1.5 pb-1.5 pt-1">
+        {views.map((v, i) => {
+          const id = v.conversation.id
+          const p = v.counterpart
+          const first = !p ? '' : 'contactName' in p ? p.name : p.name.split(' ')[0]
+          const isTyping = !!typing[id]
+          const current = id === activeId
+          return (
+            <motion.button
+              key={id}
+              type="button"
+              initial={{ opacity: 0, scale: 0.5, y: 10, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)', transition: { ...spring.bouncy, delay: 0.05 + i * 0.045 } }}
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => onSelect(id)}
+              title={p?.name}
+              className="flex w-[60px] shrink-0 flex-col items-center gap-1 rounded-2xl py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              <span className="relative block rounded-full p-[2.5px]">
+                <motion.span
+                  aria-hidden
+                  className={cn(
+                    'absolute inset-0 rounded-full',
+                    v.unread > 0 || isTyping
+                      ? 'bg-[conic-gradient(from_0deg,var(--accent),color-mix(in_oklab,var(--accent)_20%,transparent),var(--accent))]'
+                      : current
+                        ? 'bg-ink dark:bg-[var(--ink-3)]'
+                        : 'bg-[var(--line-2)]',
+                  )}
+                  animate={v.unread > 0 || isTyping ? { rotate: 360 } : { rotate: 0 }}
+                  transition={v.unread > 0 || isTyping ? { duration: 4, repeat: Infinity, ease: 'linear' } : { duration: 0.3 }}
+                />
+                <span className="relative block rounded-full bg-[var(--surface)] p-[2px]">
+                  <PersonAvatar person={p} size={44} status="online" />
+                </span>
+                <AnimatePresence>
+                  {isTyping && (
+                    <motion.span
+                      initial={{ scale: 0, y: 4 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0 }}
+                      transition={spring.bouncy}
+                      className="absolute -bottom-1 left-1/2 flex h-4 -translate-x-1/2 items-center rounded-full bg-accent px-1.5 text-accent-ink shadow ring-2 ring-[var(--surface)]"
+                    >
+                      <TypingDots size={3} dot="bg-current" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </span>
+              <span className={cn('w-full truncate text-center text-[11px]', current ? 'font-medium text-ink' : 'text-ink-2')}>{first}</span>
+            </motion.button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

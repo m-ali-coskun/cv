@@ -462,3 +462,118 @@ export const BRAND_COLORS = [
   '#C9F158', '#0B0B0C', '#FF6B3D', '#FFB21E', '#2FB36B', '#14B8A6', '#3E8EF7', '#6366F1', '#9999FF',
   '#CF96FD', '#FF61F6', '#FF3366', '#E5484D', '#C2410C', '#8B5E3C', '#64748B',
 ]
+
+// ───────────────────────────── misc helpers ─────────────────────────────
+
+/** Typical response time choices (hours). */
+export const RESPONSE_OPTIONS = [1, 2, 4, 8, 12, 24] as const
+
+export function yearOptions(span = 26) {
+  const y = new Date().getFullYear()
+  return Array.from({ length: span }, (_, i) => y - i)
+}
+
+export function sameMedia(a: MediaRef | undefined, b: MediaRef | undefined) {
+  if (!a || !b || a.kind !== b.kind) return false
+  if (a.kind === 'art' && b.kind === 'art') return a.seed === b.seed && a.variant === b.variant
+  if (a.kind === 'file' && b.kind === 'file') return a.fileId === b.fileId
+  if (a.kind === 'url' && b.kind === 'url') return a.url === b.url
+  return false
+}
+
+export function mediaKey(m: MediaRef) {
+  return m.kind === 'art' ? `art:${m.seed}:${m.variant}` : m.kind === 'file' ? `file:${m.fileId}` : `url:${m.url}`
+}
+
+/** Make a handle unique among existing designers ("@lina.okafor" → "@lina.okafor2"). */
+export function uniqueHandle(handle: string, taken: string[]) {
+  const set = new Set(taken.map((h) => h.toLowerCase()))
+  if (!set.has(handle.toLowerCase())) return handle
+  for (let i = 2; i < 999; i++) if (!set.has(`${handle}${i}`.toLowerCase())) return `${handle}${i}`
+  return `${handle}${Date.now().toString(36).slice(-3)}`
+}
+
+/** Hourly rates of designers with the same primary discipline: low / median / high. */
+export function marketRate(designers: Designer[], primary: DisciplineId, excludeId?: string) {
+  const rates = designers
+    .filter((d) => d.id !== excludeId && (d.primary === primary || d.disciplines.includes(primary)))
+    .map((d) => d.hourlyRate)
+    .sort((a, b) => a - b)
+  if (!rates.length) return null
+  const at = (p: number) => rates[Math.min(rates.length - 1, Math.max(0, Math.round((rates.length - 1) * p)))]
+  return { low: at(0.15), median: at(0.5), high: at(0.85), count: rates.length }
+}
+
+/** Local time for one of our short timezone ids, e.g. "14:32". */
+export function localTimeIn(tzId: string, now = new Date()) {
+  const tz = TIMEZONES.find((t) => t.id === tzId)
+  if (!tz) return ''
+  const m = tz.offset.match(/UTC([+−±])(\d+)(?::(\d+))?/)
+  if (!m) return ''
+  const sign = m[1] === '−' ? -1 : 1
+  const off = sign * (Number(m[2]) * 60 + (m[3] ? Number(m[3]) : 0))
+  const utc = now.getTime() + now.getTimezoneOffset() * 60_000
+  const d = new Date(utc + off * 60_000)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+// ───────────────────────────── client writing assistant ─────────────────────────────
+
+export interface ClientWritingInput {
+  name: string
+  industry: string
+  location: string
+  disciplines: DisciplineId[]
+  budget: [number, number]
+  currency: 'EUR' | 'USD'
+}
+
+export function polishClientBio(input: ClientWritingInput, tone: Tone, variant = 0): string {
+  const r = prng(`${input.name}|${tone}|${variant}`)
+  const needs = listOf(input.disciplines.map((d) => DISC_EN[d]), 3) || 'design'
+  const where = city(input.location)
+  const sym = input.currency === 'USD' ? '$' : '€'
+  const budget = `${sym}${input.budget[0].toLocaleString('en')}–${sym}${input.budget[1].toLocaleString('en')}`
+  const promise = [
+    'Clear briefs, one point of contact and feedback within 24 hours.',
+    'We write proper briefs, give consolidated feedback and pay on time — every time.',
+    'Expect a tidy brief, a style guide and a team that respects your process.',
+  ][(variant + r.int(0, 2)) % 3]
+  const industry = input.industry ? input.industry.toLowerCase() : 'creative'
+  if (tone === 'professional')
+    return `${input.name} is a ${where}-based ${industry} company. We regularly partner with freelance specialists in ${needs}, with typical project budgets of ${budget}. ${promise}`
+  if (tone === 'bold')
+    return `We are ${input.name} — and we don’t do forgettable. ${where}-based, ${industry}, always shipping. We are looking for people who live and breathe ${needs}. Budgets from ${budget}. ${promise}`
+  return `Hi from ${where}! ${input.name} is a ${industry} team that loves working with independent designers. Right now we mostly need help with ${needs} (usually ${budget} per project). ${promise}`
+}
+
+// ───────────────────────────── sample personas (/join demo) ─────────────────────────────
+
+export interface Persona {
+  name: string
+  email: string
+  location: string
+  timezone: string
+  languages: string[]
+  primary: DisciplineId
+  disciplines: DisciplineId[]
+  rate: number
+  availability: Availability
+}
+
+export const PERSONAS: Persona[] = [
+  { name: 'Lina Okoro', email: 'lina@okoro.studio', location: 'Lisbon, PT', timezone: 'WET', languages: ['English', 'Portuguese'], primary: 'illustration', disciplines: ['illustration', 'brand'], rate: 55, availability: 'available' },
+  { name: 'Jonas Becker', email: 'hello@jonasbecker.design', location: 'Hamburg, DE', timezone: 'CET', languages: ['German', 'English'], primary: 'motion', disciplines: ['motion', 'video', '3d'], rate: 75, availability: 'available' },
+  { name: 'Elif Demir', email: 'elif.demir@studio-elif.com', location: 'Istanbul, TR', timezone: 'TRT', languages: ['Turkish', 'English', 'German'], primary: 'uiux', disciplines: ['uiux', 'visual'], rate: 60, availability: 'limited' },
+  { name: 'Kai Nakamura', email: 'kai@nakamura3d.jp', location: 'Tokyo, JP', timezone: 'JST', languages: ['Japanese', 'English'], primary: '3d', disciplines: ['3d', 'motion'], rate: 90, availability: 'available' },
+  { name: 'Sofía Márquez', email: 'sofia@marquez.video', location: 'Mexico City, MX', timezone: 'CST', languages: ['Spanish', 'English'], primary: 'video', disciplines: ['video', 'motion'], rate: 50, availability: 'available' },
+  { name: 'Noah Fischer', email: 'noah@fischerbrand.co', location: 'Zurich, CH', timezone: 'CET', languages: ['German', 'French', 'English'], primary: 'brand', disciplines: ['brand', 'visual', 'illustration'], rate: 95, availability: 'limited' },
+  { name: 'Maja Nowak', email: 'maja@nowak.design', location: 'Warsaw, PL', timezone: 'CET', languages: ['Polish', 'English'], primary: 'visual', disciplines: ['visual', 'brand'], rate: 45, availability: 'available' },
+]
+
+export function personaExtras(p: Persona, seed: string) {
+  const r = prng(seed)
+  const skills = r.shuffle(SKILLS[p.primary]).slice(0, 4).concat(p.disciplines.filter((d) => d !== p.primary).map((d) => r.pick(SKILLS[d])))
+  const tools = r.shuffle(suggestionsFor(TOOLS, p.primary, p.disciplines).slice(0, 8)).slice(0, 4)
+  return { skills: Array.from(new Set(skills)).slice(0, 6), tools }
+}

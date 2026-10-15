@@ -229,7 +229,7 @@ export function MessageItem({ item, enter, delay }: { item: MsgItem; enter: Ente
                 exit={{ opacity: 0, scale: 0.9, y: 4, filter: 'blur(2px)', transition: { duration: 0.12 } }}
                 transition={spring.snappy}
                 style={{ transformOrigin: own ? 'bottom right' : 'bottom left' }}
-                className={cn('glass glass-strong glass-pill absolute -top-11 z-20 flex items-center gap-0.5 p-1', own ? 'right-0' : 'left-0')}
+                className={cn('glass glass-pill absolute -top-11 z-20 flex items-center gap-0.5 p-1', POPOVER_SURFACE, own ? 'right-0' : 'left-0')}
               >
                 {REACTIONS.map((e, i) => {
                   const mine = msg.reactions.find((r) => r.emoji === e)?.by.includes(ctx.meId)
@@ -264,7 +264,7 @@ export function MessageItem({ item, enter, delay }: { item: MsgItem; enter: Ente
                   )}
                   items={[
                     { label: t('messages.action.reply'), icon: <CornerUpLeft />, onClick: () => ctx.reply(msg) },
-                    { label: t('messages.action.copy'), icon: <Copy />, onClick: () => ctx.copy(msg), disabled: !msg.text },
+                    { label: t('messages.action.copy'), icon: <Copy />, onClick: () => ctx.copy(msg), disabled: !msg.text || isVoice },
                     { label: saved ? t('messages.action.unsave') : t('messages.action.save'), icon: saved ? <BookmarkCheck /> : <Bookmark />, onClick: () => ctx.toggleSave(msg) },
                     ...(canEdit ? [{ label: t('messages.action.edit'), icon: <Pencil />, onClick: () => ctx.edit(msg) }] : []),
                     ...(own ? [{ divider: true, label: '' }, { label: t('messages.action.delete'), icon: <Trash2 />, danger: true, onClick: () => ctx.remove(msg) }] : []),
