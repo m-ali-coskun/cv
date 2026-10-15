@@ -10,7 +10,7 @@ import type { Role } from '@/store/types'
 import { toast } from '@/store/toasts'
 import { dueLabel, fmt, shortDate } from '@/lib/dates'
 import { formatMoney } from '@/lib/format'
-import { EASE_OUT, spring } from '@/lib/motion'
+import { EASE_OUT, spring, FILTER_TWEEN } from '@/lib/motion'
 import { DisciplineIcon, PriorityBadge, StatusBadge } from '@/components/ui/Badge'
 import { ProgressBar } from '@/components/ui/Progress'
 import { MediaView } from '@/components/art/MediaView'
@@ -263,7 +263,7 @@ export function ListView({ rows, role }: { rows: JobRow[]; role: Role }) {
               initial={{ y: 90, opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
               animate={{ y: 0, opacity: 1, scale: 1, filter: 'blur(0px)' }}
               exit={{ y: 90, opacity: 0, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 30, filter: FILTER_TWEEN }}
               className="glass-night fixed inset-x-3 bottom-[6.5rem] z-[60] mx-auto flex max-w-[620px] items-center gap-1 rounded-full p-1.5 pl-4 lg:bottom-6"
               role="toolbar"
               aria-label={t('jobs.list.bulk')}

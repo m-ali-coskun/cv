@@ -246,26 +246,30 @@ export function ChartLegend({
 
 /** Screen-reader data table — the "table view" every chart ships with. */
 export function SrTable({ caption, columns, rows }: { caption: string; columns: string[]; rows: (string | number)[][] }) {
+  // sr-only lives on a wrapper: tables ignore `width: 1px`, so a bare sr-only <table> keeps its
+  // content width and widens the page's scroll area on phones.
   return (
-    <table className="sr-only">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          {columns.map((c) => (
-            <th key={c} scope="col">
-              {c}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r, i) => (
-          <tr key={i}>
-            {r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}
+    <div className="sr-only">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            {columns.map((c) => (
+              <th key={c} scope="col">
+                {c}
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              {r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 

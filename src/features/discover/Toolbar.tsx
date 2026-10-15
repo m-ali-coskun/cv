@@ -13,6 +13,7 @@ import { useDiscoverUI, type DiscoverMode } from './discoverStore'
 import { useIsMobile, type usePool } from './hooks'
 import { FilterPanel } from './FilterPanel'
 import { activeFilterCount, type SortKey } from './model'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 type Pool = ReturnType<typeof usePool>
 
@@ -215,7 +216,7 @@ function FilterButton({ pool, count }: { pool: Pool; count: number }) {
             initial={{ opacity: 0, scale: 0.9, y: -8, filter: 'blur(6px)' }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.95, y: -6, filter: 'blur(4px)', transition: { duration: 0.15 } }}
-            transition={{ type: 'spring', stiffness: 460, damping: 32 }}
+            transition={{ type: 'spring', stiffness: 460, damping: 32, filter: FILTER_TWEEN }}
             className={cn(
               'glass absolute top-[calc(100%+10px)] z-[70] w-[min(400px,calc(100vw-24px))] overflow-hidden rounded-[26px] shadow-[0_30px_60px_-20px_rgba(0,0,0,.35)] bg-[color-mix(in_oklab,var(--surface)_95%,transparent)]',
               alignLeft ? 'left-0 origin-top-left' : 'right-0 origin-top-right',

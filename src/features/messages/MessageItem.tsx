@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, type TargetAndTransition } from 'motion/react'
 import { Bookmark, BookmarkCheck, Check, CheckCheck, Copy, CornerUpLeft, MoreHorizontal, Pencil, Reply, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT, spring } from '@/lib/motion'
+import { EASE_OUT, spring, FILTER_TWEEN } from '@/lib/motion'
 import { useLang, useT } from '@/i18n'
 import { Menu } from '@/components/ui/Menu'
 import { useThreadCtx } from './context'
@@ -372,7 +372,7 @@ export function TypingBubble({ person }: { person: Parameters<typeof PersonAvata
       initial={{ opacity: 0, y: 14, x: -10, scale: 0.7, filter: 'blur(6px)' }}
       animate={{ opacity: 1, y: 0, x: 0, scale: 1, filter: 'blur(0px)' }}
       exit={{ opacity: 0, scale: 0.6, filter: 'blur(6px)', transition: { duration: 0.16 } }}
-      transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 24, filter: FILTER_TWEEN }}
       style={{ transformOrigin: 'bottom left' }}
       className="mt-3 flex items-end gap-2"
       aria-live="polite"

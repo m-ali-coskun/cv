@@ -376,7 +376,7 @@ export function Wizard() {
         {step !== STEP.review && <BriefPreviewToggle />}
 
         {/* step content */}
-        <div className="-mx-3 overflow-x-clip px-3">
+        <div className="-mx-2.5 overflow-x-clip px-2.5 sm:-mx-3 sm:px-3">
           <AnimatePresence mode="wait" custom={dir} initial={false}>
             <motion.div key={step} custom={dir} variants={slide} initial="enter" animate="center" exit="exit">
               {content}

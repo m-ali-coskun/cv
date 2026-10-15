@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNo
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/cn'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 export interface PopoverTriggerProps {
   ref: RefObject<HTMLButtonElement | null>
@@ -111,7 +112,7 @@ export function Popover({
               initial={{ opacity: 0, scale: 0.9, filter: 'blur(6px)' }}
               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 0.94, filter: 'blur(4px)', transition: { duration: 0.14 } }}
-              transition={{ type: 'spring', stiffness: 520, damping: 34 }}
+              transition={{ type: 'spring', stiffness: 520, damping: 34, filter: FILTER_TWEEN }}
               className={cn('glass glass-strong fixed z-[85] overflow-hidden rounded-[20px] p-1.5', className)}
               style={{
                 top: pos?.top ?? -9999,

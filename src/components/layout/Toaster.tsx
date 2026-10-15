@@ -2,8 +2,10 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { AlertCircle, CheckCircle2, Heart, Info, MessageCircle, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useT } from '@/i18n'
 import { useToasts, type Toast } from '@/store/toasts'
 import { Avatar } from '../ui/Avatar'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 const ICON = {
   default: Info,
@@ -43,6 +45,7 @@ export function Toaster() {
 }
 
 function ToastCard({ toast, onClose, onOpen }: { toast: Toast; onClose: () => void; onOpen?: () => void }) {
+  const t = useT()
   const Icon = ICON[toast.tone]
   return (
     <motion.div
@@ -50,7 +53,7 @@ function ToastCard({ toast, onClose, onOpen }: { toast: Toast; onClose: () => vo
       initial={{ opacity: 0, y: 30, scale: 0.85, filter: 'blur(8px)' }}
       animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
       exit={{ opacity: 0, x: 60, scale: 0.9, transition: { duration: 0.2 } }}
-      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 28, filter: FILTER_TWEEN }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.6}
@@ -90,7 +93,7 @@ function ToastCard({ toast, onClose, onOpen }: { toast: Toast; onClose: () => vo
           {toast.action.label}
         </button>
       )}
-      <button type="button" onClick={onClose} className="relative z-[1] mt-0.5 shrink-0 rounded-full p-1 text-ink-3 hover:bg-[var(--surface-2)] hover:text-ink" aria-label="Dismiss">
+      <button type="button" onClick={onClose} className="relative z-[1] mt-0.5 shrink-0 rounded-full p-1 text-ink-3 hover:bg-[var(--surface-2)] hover:text-ink" aria-label={t('core.action.close')}>
         <X className="size-4" />
       </button>
     </motion.div>

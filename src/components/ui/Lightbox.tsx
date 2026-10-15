@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, animate, motion, useMotionValue } from 'motion/react'
 import { ChevronLeft, ChevronRight, Download, Pause, Play, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_IOS, EASE_OUT } from '@/lib/motion'
+import { EASE_IOS, EASE_OUT, FILTER_TWEEN } from '@/lib/motion'
 import { loadFileUrl, mediaIsImage, mediaIsVideo } from '@/lib/files'
 import { formatBytes } from '@/lib/format'
 import { useMediaUrl } from '@/lib/useMediaUrl'
@@ -376,7 +376,7 @@ function LightboxInner({ items, index, onClose, onIndexChange, captions, title, 
             initial={{ x: dir * 160, opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
             animate={{ x: 0, opacity: 1, scale: 1, filter: 'blur(0px)' }}
             exit={{ x: dir * -160, opacity: 0, scale: 0.9, filter: 'blur(10px)', transition: { duration: 0.25, ease: EASE_IOS } }}
-            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 30, filter: FILTER_TWEEN }}
           >
             <motion.div
               className="pointer-events-auto"

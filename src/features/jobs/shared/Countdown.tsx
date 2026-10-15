@@ -3,6 +3,7 @@ import { cn } from '@/lib/cn'
 import { useT } from '@/i18n'
 import { ProgressRing } from '@/components/ui/Progress'
 import { useNow } from './model'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 /** Two digits that roll vertically when they change (odometer feel). */
 function Roll({ value, className }: { value: number; className?: string }) {
@@ -17,7 +18,7 @@ function Roll({ value, className }: { value: number; className?: string }) {
               initial={{ y: '-100%', filter: 'blur(3px)', opacity: 0.4 }}
               animate={{ y: '0%', filter: 'blur(0px)', opacity: 1 }}
               exit={{ y: '100%', filter: 'blur(3px)', opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 22, filter: FILTER_TWEEN }}
               className="absolute inset-0 flex items-center justify-center leading-none"
             >
               {ch}

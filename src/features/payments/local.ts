@@ -74,6 +74,10 @@ export interface Payout {
 interface PayPrefs {
   goal: number
   taxRate: number
+  /** Client: monthly design budget. */
+  budget: number
+  /** Designer: payout speed preference. */
+  instantDefault: boolean
   payouts: Payout[]
   /** invoiceId → time a reminder was sent (ms). */
   reminded: Record<string, number>
@@ -81,6 +85,8 @@ interface PayPrefs {
   celebrated?: string
   setGoal: (n: number) => void
   setTaxRate: (n: number) => void
+  setBudget: (n: number) => void
+  setInstantDefault: (v: boolean) => void
   addPayout: (p: Omit<Payout, 'id' | 'at'>) => Payout
   markReminded: (invoiceId: string) => void
   setCelebrated: (key: string) => void
@@ -89,12 +95,16 @@ interface PayPrefs {
 export const usePayPrefs = create<PayPrefs>()(
   persist(
     (set) => ({
-      goal: 6000,
+      goal: 10000,
       taxRate: 0.25,
+      budget: 15000,
+      instantDefault: false,
       payouts: [],
       reminded: {},
       setGoal: (goal) => set({ goal: Math.max(100, Math.round(goal)) }),
       setTaxRate: (taxRate) => set({ taxRate }),
+      setBudget: (budget) => set({ budget: Math.max(500, Math.round(budget)) }),
+      setInstantDefault: (instantDefault) => set({ instantDefault }),
       addPayout: (p) => {
         const payout: Payout = { ...p, id: uid('po_'), at: new Date().toISOString() }
         set((s) => ({ payouts: [payout, ...s.payouts].slice(0, 40) }))

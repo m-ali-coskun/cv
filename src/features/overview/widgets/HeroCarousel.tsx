@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, type PanInfo } from 'motion/react'
 import { Briefcase, PenLine, Star } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT } from '@/lib/motion'
+import { EASE_OUT, FILTER_TWEEN } from '@/lib/motion'
 import { shortDate, dueLabel, daysUntil } from '@/lib/dates'
 import { useLang, useT } from '@/i18n'
 import { useApp } from '@/store'
@@ -164,7 +164,7 @@ export function HeroCarousel({ jobs, index, onIndex, className }: { jobs: Job[];
               initial={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 26 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 26, filter: FILTER_TWEEN }}
               className="pointer-events-auto"
             >
               <CoverChip>

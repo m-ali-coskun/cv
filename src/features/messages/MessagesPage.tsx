@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
-import { Compass, Inbox, MessagesSquare, SearchX, SquarePen } from 'lucide-react'
+import { ArrowLeftRight, Compass, Inbox, MessagesSquare, SearchX, SquarePen } from 'lucide-react'
 import { EASE_IOS } from '@/lib/motion'
 import { useT } from '@/i18n'
 import { useApp } from '@/store'
 import { useConversations, useDiscipline, useRole } from '@/store/selectors'
+import { ME_CLIENT_ID, ME_DESIGNER_ID } from '@/store/types'
 import { Glass } from '@/components/ui/Glass'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -28,6 +29,10 @@ import { ChatKeyframes } from './ui'
 export default function MessagesPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  // Live location (route params are frozen while this page plays its exit animation): redirects
+  // below must only fire while /messages is really on screen, or leaving mid-load bounces back here.
+  const { pathname } = useLocation()
+  const onMessages = pathname === '/messages' || pathname.startsWith('/messages/')
   const t = useT()
   const role = useRole()
   const discipline = useDiscipline()
@@ -39,6 +44,17 @@ export default function MessagesPage() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [fillRef, height] = useFillHeight(isLg ? 40 : 90)
   const view = id ? all.find((v) => v.conversation.id === id) : undefined
+  const conversations = useApp((s) => s.conversations)
+  const setSettings = useApp((s) => s.setSettings)
+  // A deep link (notification, palette, job page) may point at a thread in the other workspace.
+  const foreign = id && !view ? conversations.find((c) => c.id === id) : undefined
+  const otherRole = !foreign
+    ? null
+    : role !== 'client' && foreign.clientId === ME_CLIENT_ID
+      ? 'client'
+      : role !== 'designer' && foreign.designerId === ME_DESIGNER_ID
+        ? 'designer'
+        : null
   const jobById = useMemo(() => new Map(jobs.map((j) => [j.id, j])), [jobs])
   const ordered = useMemo(
     () => all.filter((v) => !v.conversation.archived && (v.conversation.id === id || conversationMatchesDiscipline(v, discipline, jobById))),
@@ -47,18 +63,18 @@ export default function MessagesPage() {
 
   // Desktop/tablet: never show an empty thread pane — open the first conversation.
   useEffect(() => {
-    if (id || !isMd) return
+    if (id || !isMd || pathname !== '/messages') return
     const first = ordered[0] ?? all.find((v) => !v.conversation.archived)
     if (first) navigate(`/messages/${first.conversation.id}`, { replace: true })
-  }, [id, isMd, ordered, all, navigate])
+  }, [id, isMd, ordered, all, navigate, pathname])
 
   // Switching role makes the open thread meaningless → back to the inbox.
   const prevRole = useRef(role)
   useEffect(() => {
     if (prevRole.current === role) return
     prevRole.current = role
-    if (id && !view) navigate('/messages', { replace: true })
-  }, [role, id, view, navigate])
+    if (id && !view && onMessages) navigate('/messages', { replace: true })
+  }, [role, id, view, navigate, onMessages])
 
   // Keyboard: Alt+↑/↓ switch conversations, "/" search, "n" new message, "?" help
   useEffect(() => {
@@ -96,7 +112,23 @@ export default function MessagesPage() {
     <ConversationList activeId={id} onSelect={select} onNew={() => setNewOpen(true)} onShortcuts={() => setHelpOpen(true)} className="h-full" />
   )
 
-  const notFound = (
+  const notFound = otherRole ? (
+    <EmptyState
+      icon={<ArrowLeftRight />}
+      title={t('messages.notFound.otherTitle', { workspace: t(otherRole === 'client' ? 'core.role.clientWorkspace' : 'core.role.designerStudio') })}
+      description={t('messages.notFound.otherBody')}
+      action={
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button icon={<ArrowLeftRight className="size-4" />} onClick={() => setSettings({ role: otherRole })}>
+            {t('core.role.switch')}
+          </Button>
+          <Button variant="glass" icon={<Inbox className="size-4" />} onClick={() => navigate('/messages', { replace: true })}>
+            {t('messages.notFound.back')}
+          </Button>
+        </div>
+      }
+    />
+  ) : (
     <EmptyState
       icon={<SearchX />}
       title={t('messages.notFound.title')}

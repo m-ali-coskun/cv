@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { BellRing, Copy, CreditCard, ExternalLink, LockOpen, Printer } from 'lucide-react'
 import { fmt } from '@/lib/dates'
-import { formatMoney } from '@/lib/format'
 import { prng } from '@/lib/random'
 import { useLang, useT } from '@/i18n'
 import { useRole } from '@/store/selectors'
@@ -11,7 +10,7 @@ import { toast } from '@/store/toasts'
 import { Modal } from '@/components/ui/Overlay'
 import { Button } from '@/components/ui/Button'
 import { disciplineTheme } from '@/theme/disciplines'
-import { paymentReference, type InvoiceRow } from './model'
+import { money as fmtMoney, paymentReference, type InvoiceRow } from './model'
 import { InvoiceStatusPill } from './ui'
 
 export const VAT_RATE = 0.19
@@ -85,7 +84,7 @@ export function InvoiceSheet({ row }: { row: InvoiceRow }) {
   const t = useT()
   const lang = useLang()
   const { inv, designer, client, job } = row
-  const money = (v: number) => formatMoney(v, inv.currency, lang)
+  const money = (v: number) => fmtMoney(v, inv.currency, lang)
   const net = inv.amount / (1 + VAT_RATE)
   const vat = inv.amount - net
   const date = (d?: string) => (d ? fmt(d, lang === 'en' ? 'MMM d, yyyy' : 'd. MMM yyyy', lang) : '—')
@@ -174,7 +173,7 @@ export function InvoiceSheet({ row }: { row: InvoiceRow }) {
           <dt className="text-[#8b8b93]">{t('payments.viewer.job')}</dt>
           <dd className="text-right font-mono">{inv.jobId}</dd>
           <dt className="text-[#8b8b93]">{t('payments.viewer.terms')}</dt>
-          <dd className="text-right font-mono">{t('payments.viewer.net14')}</dd>
+          <dd className="text-right font-mono">{t('payments.viewer.netDays', { n: Math.max(0, Math.round((new Date(inv.dueAt).getTime() - new Date(inv.issuedAt).getTime()) / 864e5)) })}</dd>
         </dl>
       </div>
 

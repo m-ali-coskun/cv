@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_IOS } from '@/lib/motion'
+import { EASE_IOS, FILTER_TWEEN } from '@/lib/motion'
+import { useT } from '@/i18n'
 import { IconButton } from './Button'
 
 function useLockScroll(open: boolean) {
@@ -45,6 +46,7 @@ const SIZES = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl', xl: 'max-w-5xl'
 /** Centered liquid-glass dialog. On phones it becomes a bottom sheet. */
 export function Modal({ open, onClose, title, description, children, footer, size = 'md', className, bare, dismissable = true }: ModalProps) {
   const id = useId()
+  const t = useT()
   useLockScroll(open)
   useEscape(open && dismissable, onClose)
   return createPortal(
@@ -65,7 +67,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
               className,
             )}
             initial={{ opacity: 0, y: 60, scale: 0.94, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 330, damping: 30 } }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 330, damping: 30, filter: FILTER_TWEEN } }}
             exit={{ opacity: 0, y: 40, scale: 0.97, filter: 'blur(6px)', transition: { duration: 0.2, ease: EASE_IOS } }}
           >
             {!bare && (title || dismissable) && (
@@ -79,7 +81,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
                   {description && <p className="mt-1 text-[13.5px] text-ink-3">{description}</p>}
                 </div>
                 {dismissable && (
-                  <IconButton label="Close" variant="soft" size="sm" onClick={onClose}>
+                  <IconButton label={t('core.action.close')} variant="soft" size="sm" onClick={onClose}>
                     <X className="size-4" />
                   </IconButton>
                 )}
@@ -110,6 +112,7 @@ export interface DrawerProps {
 
 /** Side sheet (bottom sheet on phones when side="bottom"). */
 export function Drawer({ open, onClose, title, children, side = 'right', width = 480, className, header }: DrawerProps) {
+  const t = useT()
   useLockScroll(open)
   useEscape(open, onClose)
   const from = side === 'right' ? { x: '105%' } : side === 'left' ? { x: '-105%' } : { y: '105%' }
@@ -122,7 +125,7 @@ export function Drawer({ open, onClose, title, children, side = 'right', width =
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[75]">
+        <div className="fixed inset-0 z-[75]" role="dialog" aria-modal aria-label={typeof title === 'string' ? title : undefined}>
           <motion.div
             className="absolute inset-0 bg-black/25 backdrop-blur-[4px] dark:bg-black/55"
             initial={{ opacity: 0 }}
@@ -148,7 +151,7 @@ export function Drawer({ open, onClose, title, children, side = 'right', width =
               (title && (
                 <div className="relative z-[1] flex items-center justify-between gap-3 px-5 pb-3 pt-5">
                   <h2 className="text-[19px] font-medium tracking-[-0.02em]">{title}</h2>
-                  <IconButton label="Close" variant="soft" size="sm" onClick={onClose}>
+                  <IconButton label={t('core.action.close')} variant="soft" size="sm" onClick={onClose}>
                     <X className="size-4" />
                   </IconButton>
                 </div>

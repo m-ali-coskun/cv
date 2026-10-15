@@ -2,7 +2,7 @@ import { forwardRef, type ReactNode } from 'react'
 import { AnimatePresence, motion, type HTMLMotionProps } from 'motion/react'
 import { ArrowDownRight, ArrowUpRight, Check, Clock, FileText, Lock, TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT, item } from '@/lib/motion'
+import { EASE_OUT, item, FILTER_TWEEN } from '@/lib/motion'
 import { useT } from '@/i18n'
 import { Glass, type GlassVariant } from '@/components/ui/Glass'
 import { Avatar } from '@/components/ui/Avatar'
@@ -58,7 +58,7 @@ export function InvoiceStatusPill({ status, className, size = 'sm' }: { status: 
           initial={{ opacity: 0, scale: 0.6, filter: 'blur(6px)' }}
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
           exit={{ opacity: 0, scale: 0.6, filter: 'blur(6px)' }}
-          transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+          transition={{ type: 'spring', stiffness: 520, damping: 22, filter: FILTER_TWEEN }}
           className={cn(
             'inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full font-medium',
             size === 'xs' ? 'h-5 px-2 text-[11px]' : 'h-6.5 px-2.5 text-[12px]',
@@ -179,10 +179,10 @@ export function ShareBar({ value, color = 'var(--accent)', delay = 0, className 
   return (
     <div className={cn('relative h-2 overflow-hidden rounded-full bg-[var(--surface-3)]', className)}>
       <motion.div
-        className="absolute inset-y-0 left-0 rounded-full"
-        style={{ background: color }}
-        initial={{ width: 0 }}
-        animate={{ width: `${Math.max(2, Math.min(100, value))}%` }}
+        className="absolute inset-y-0 left-0 origin-left rounded-full"
+        style={{ background: color, width: `${Math.max(2, Math.min(100, value))}%` }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
         transition={{ duration: 1, ease: EASE_OUT, delay }}
       />
     </div>

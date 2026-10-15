@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/Overlay'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Field'
 import { MonthCalendar } from '@/components/ui/DatePicker'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 const PRESETS = [2, 3, 5, 7, 14]
 
@@ -83,7 +84,7 @@ export function CounterOfferModal({ job, open, onClose, onDone }: { job: Job | u
                 initial={{ y: 12, opacity: 0, filter: 'blur(4px)' }}
                 animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                 exit={{ y: -12, opacity: 0, filter: 'blur(4px)' }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30, filter: FILTER_TWEEN }}
                 className="font-mono text-[15px] font-medium"
               >
                 {shortDate(date, lang)}

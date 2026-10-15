@@ -11,12 +11,19 @@ export const EASE_OUT = [0.23, 1, 0.32, 1] as const
 export const EASE_IOS = [0.32, 0.72, 0, 1] as const
 export const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const
 
+/**
+ * Springs overshoot, and an overshooting `filter: blur()` dips below 0px (invalid CSS, logged as a
+ * keyframe warning). Every preset therefore eases `filter` with a short tween while transforms keep
+ * the spring. `inherit` keeps the parent transition's `delay`, so staggered focus-pulls stay in sync.
+ */
+export const FILTER_TWEEN = { type: 'tween', duration: 0.32, ease: EASE_OUT, inherit: true } as const
+
 export const spring = {
-  snappy: { type: 'spring', stiffness: 520, damping: 34, mass: 0.8 } as Transition,
-  smooth: { type: 'spring', stiffness: 260, damping: 30 } as Transition,
-  bouncy: { type: 'spring', stiffness: 420, damping: 18, mass: 0.9 } as Transition,
-  wobbly: { type: 'spring', stiffness: 300, damping: 12 } as Transition,
-  pill: { type: 'spring', stiffness: 480, damping: 38 } as Transition,
+  snappy: { type: 'spring', stiffness: 520, damping: 34, mass: 0.8, filter: FILTER_TWEEN } as Transition,
+  smooth: { type: 'spring', stiffness: 260, damping: 30, filter: FILTER_TWEEN } as Transition,
+  bouncy: { type: 'spring', stiffness: 420, damping: 18, mass: 0.9, filter: FILTER_TWEEN } as Transition,
+  wobbly: { type: 'spring', stiffness: 300, damping: 12, filter: FILTER_TWEEN } as Transition,
+  pill: { type: 'spring', stiffness: 480, damping: 38, filter: FILTER_TWEEN } as Transition,
 }
 
 export const press = { scale: 0.97 }

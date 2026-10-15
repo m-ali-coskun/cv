@@ -80,7 +80,7 @@ export function TodayStrip({ jobs, className }: { jobs: Job[]; className?: strin
           <Icon className="size-4" />
         </span>
         <span className="min-w-0">
-          <span className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+          <span className="flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-[11.5px] text-ink-3">
             {current && <LiveDot color="var(--accent-strong)" />}
             {current ? t('overview.today.nowOn') : ev ? t('overview.today.next') : t('overview.today.free')}
             {ev && !current && <span className="font-mono">· {relIn(ts(ev.at) - now, t)}</span>}

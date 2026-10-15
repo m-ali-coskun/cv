@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Briefcase, ChevronDown, Inbox, PackageCheck, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT } from '@/lib/motion'
+import { EASE_OUT, FILTER_TWEEN } from '@/lib/motion'
 import { dueLabel, daysUntil } from '@/lib/dates'
 import { formatDuration } from '@/lib/format'
 import { useLang, useT } from '@/i18n'
@@ -40,7 +40,7 @@ function TickClock({ value, className }: { value: string; className?: string }) 
                 initial={{ y: '-70%', opacity: 0, filter: 'blur(3px)' }}
                 animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
                 exit={{ y: '70%', opacity: 0, filter: 'blur(3px)' }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30, filter: FILTER_TWEEN }}
               >
                 {ch}
               </motion.span>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/cn'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 export interface MenuItem {
   label: ReactNode
@@ -59,7 +60,7 @@ export function Menu({
             initial={{ opacity: 0, scale: 0.92, y: -6, filter: 'blur(4px)' }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.95, y: -4, transition: { duration: 0.12 } }}
-            transition={{ type: 'spring', stiffness: 520, damping: 32 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 32, filter: FILTER_TWEEN }}
             className={cn(
               'glass glass-strong absolute top-[calc(100%+8px)] z-[70] overflow-hidden rounded-[20px] p-1.5',
               align === 'end' ? 'right-0 origin-top-right' : 'left-0 origin-top-left',

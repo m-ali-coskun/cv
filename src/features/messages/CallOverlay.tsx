@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Mic, MicOff, PhoneOff, Video, VideoOff, Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_IOS, spring } from '@/lib/motion'
+import { EASE_IOS, spring, FILTER_TWEEN } from '@/lib/motion'
 import { useT } from '@/i18n'
 import { mmss, personLine, type Person } from './model'
 import { PersonAvatar } from './ui'
@@ -60,7 +60,7 @@ function CallInner({ person, onEnd }: { person?: Person; onEnd: (connectedSecond
       <motion.div
         className="glass-night relative flex w-full max-w-sm flex-col items-center overflow-hidden rounded-[36px] px-6 pb-7 pt-10 text-center"
         initial={{ y: 80, scale: 0.9, opacity: 0, filter: 'blur(12px)' }}
-        animate={{ y: 0, scale: 1, opacity: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 260, damping: 26 } }}
+        animate={{ y: 0, scale: 1, opacity: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 260, damping: 26, filter: FILTER_TWEEN } }}
         exit={{ y: 60, scale: 0.94, opacity: 0, transition: { duration: 0.25, ease: EASE_IOS } }}
       >
         <div className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-accent opacity-25 blur-3xl" />

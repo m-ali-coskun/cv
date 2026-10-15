@@ -16,6 +16,7 @@ import { AddCardModal } from './Cards'
 import { useCards } from './local'
 import type { InvoiceRow } from './model'
 import { InvoiceStatusPill, MonoId, PersonAvatar } from './ui'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 type Step = 'review' | 'processing' | 'done'
 
@@ -226,7 +227,7 @@ export function PayModal({ row, open, onClose, onViewInvoice }: { row: InvoiceRo
                         initial={{ y: 18, opacity: 0, filter: 'blur(4px)' }}
                         animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
                         exit={{ y: -18, opacity: 0, filter: 'blur(4px)' }}
-                        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 30, filter: FILTER_TWEEN }}
                         className="text-[15px] font-medium"
                       >
                         {t(PROCESS_STEPS[phase])}

@@ -23,7 +23,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT, spring } from '@/lib/motion'
+import { EASE_OUT, spring, FILTER_TWEEN } from '@/lib/motion'
 import { deleteFile, saveFile } from '@/lib/files'
 import { formatBytes } from '@/lib/format'
 import { uid } from '@/lib/ids'
@@ -800,7 +800,7 @@ function EmojiPicker({ open, setOpen, onPick }: { open: boolean; setOpen: (v: bo
             initial={{ opacity: 0, scale: 0.85, y: 12, filter: 'blur(6px)' }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.92, y: 8, filter: 'blur(4px)', transition: { duration: 0.14 } }}
-            transition={{ type: 'spring', stiffness: 460, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 460, damping: 30, filter: FILTER_TWEEN }}
             style={{ transformOrigin: 'bottom right' }}
             className={cn('glass glass-strong absolute bottom-[calc(100%+12px)] right-0 z-[60] w-[min(320px,calc(100vw-32px))] rounded-[24px] p-2', POPOVER_SURFACE)}
             role="dialog"

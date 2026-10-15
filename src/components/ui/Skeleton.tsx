@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { cn } from '@/lib/cn'
+import { useT } from '@/i18n'
 
 /**
  * Loading placeholders with a soft liquid shimmer. They follow the theme
@@ -41,8 +42,9 @@ export function SkeletonCircle({ size = 40, className }: { size?: number; classN
 
 /** Media card placeholder (cover + title + meta row). */
 export function SkeletonCard({ className, media = true }: { className?: string; media?: boolean }) {
+  const t = useT()
   return (
-    <div className={cn('card p-4', className)} role="status" aria-busy aria-label="Loading">
+    <div className={cn('card p-4', className)} role="status" aria-busy aria-label={t('core.common.loading')}>
       {media && <Skeleton rounded="xl" className="mb-4 aspect-[4/3] w-full" />}
       <div className="flex items-center gap-3">
         <SkeletonCircle size={36} />
@@ -58,8 +60,9 @@ export function SkeletonCard({ className, media = true }: { className?: string; 
 
 /** Table/list placeholder: avatar + two lines + trailing pill, `rows` times. */
 export function SkeletonList({ rows = 4, className }: { rows?: number; className?: string }) {
+  const t = useT()
   return (
-    <div className={cn('divide-y divide-[var(--line)]', className)} role="status" aria-busy aria-label="Loading">
+    <div className={cn('divide-y divide-[var(--line)]', className)} role="status" aria-busy aria-label={t('core.common.loading')}>
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex items-center gap-3 py-3" style={{ opacity: 1 - i * (0.6 / rows) }}>
           <SkeletonCircle size={34} />

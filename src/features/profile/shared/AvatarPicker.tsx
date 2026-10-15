@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Camera, Dices, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT, spring } from '@/lib/motion'
+import { EASE_OUT, spring, FILTER_TWEEN } from '@/lib/motion'
 import { saveFile } from '@/lib/files'
 import { useT } from '@/i18n'
 import { toast } from '@/store/toasts'
@@ -102,7 +102,7 @@ export function AvatarPicker({
             initial={{ rotateY: -110, scale: 0.7, opacity: 0, filter: 'blur(8px)' }}
             animate={{ rotateY: 0, scale: 1, opacity: 1, filter: 'blur(0px)' }}
             exit={{ rotateY: 110, scale: 0.7, opacity: 0, filter: 'blur(8px)', transition: { duration: 0.22, ease: EASE_OUT } }}
-            transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 18, filter: FILTER_TWEEN }}
           >
             <Avatar seed={seed} media={hasPhoto ? media : undefined} size={size - 8} />
           </motion.div>

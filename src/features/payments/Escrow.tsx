@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Check, ChevronDown, Lock, LockOpen, ShieldCheck, Vault, Wallet } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { dueLabel, shortDate } from '@/lib/dates'
-import { formatMoney } from '@/lib/format'
 import { uid } from '@/lib/ids'
 import { fireEmoji } from '@/lib/confetti'
 import { useLang, useT } from '@/i18n'
@@ -17,7 +16,10 @@ import { useConfirm } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { MediaView } from '@/components/art/MediaView'
 import type { Job, Milestone } from '@/store/types'
-import { Card, MonoId, PersonAvatar } from './ui'
+import { Card, MonoId } from './ui'
+import { money as fmtMoney } from './model'
+
+const ESCROW_PAGE = 7
 
 const ACTIVE = (j: Job) => !['approved', 'declined', 'cancelled'].includes(j.status) && j.milestones.length > 0
 
@@ -27,8 +29,19 @@ export function EscrowCard({ className }: { className?: string }) {
   const lang = useLang()
   const currency = useApp((s) => s.settings.currency)
   const jobs = useMyJobs({ includeClosed: false })
-  const list = useMemo(() => jobs.filter(ACTIVE).sort((a, b) => a.dueAt.localeCompare(b.dueAt)), [jobs])
+  const list = useMemo(
+    () =>
+      jobs
+        .filter(ACTIVE)
+        .sort(
+          (a, b) =>
+            Number(b.milestones.some((m) => m.status === 'escrow')) - Number(a.milestones.some((m) => m.status === 'escrow')) || a.dueAt.localeCompare(b.dueAt),
+        ),
+    [jobs],
+  )
   const [openId, setOpenId] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? list : list.slice(0, ESCROW_PAGE)
   const expanded = openId ?? list[0]?.id ?? null
 
   const totals = useMemo(() => {
@@ -41,17 +54,27 @@ export function EscrowCard({ className }: { className?: string }) {
     <Card className={cn('flex flex-col', className)}>
       <CardHeader title={t('payments.escrow.title')} subtitle={t('payments.escrow.subtitle', { count: list.length })} icon={<Vault className="size-5 text-ink-3" />} />
       <div className="relative z-[1] mt-4 grid grid-cols-3 gap-2">
-        <Total label={t('payments.escrow.held')} value={formatMoney(totals.escrow, currency, lang)} dot="var(--accent)" />
-        <Total label={t('payments.escrow.released')} value={formatMoney(totals.released, currency, lang)} dot="var(--success)" />
-        <Total label={t('payments.escrow.locked')} value={formatMoney(totals.locked, currency, lang)} dot="var(--ink-4)" />
+        <Total label={t('payments.escrow.held')} value={fmtMoney(totals.escrow, currency, lang, 0)} dot="var(--accent)" />
+        <Total label={t('payments.escrow.released')} value={fmtMoney(totals.released, currency, lang, 0)} dot="var(--success)" />
+        <Total label={t('payments.escrow.locked')} value={fmtMoney(totals.locked, currency, lang, 0)} dot="var(--ink-4)" />
       </div>
       <div className="relative z-[1] mt-3 flex-1 space-y-2">
         {list.length === 0 ? (
           <EmptyState icon={<ShieldCheck />} title={t('payments.escrow.emptyTitle')} description={t('payments.escrow.emptyBody')} />
         ) : (
-          list.map((j) => <EscrowJob key={j.id} job={j} open={expanded === j.id} onToggle={() => setOpenId(expanded === j.id ? '__none' : j.id)} />)
+          shown.map((j) => <EscrowJob key={j.id} job={j} open={expanded === j.id} onToggle={() => setOpenId(expanded === j.id ? '__none' : j.id)} />)
         )}
       </div>
+      {list.length > ESCROW_PAGE && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="relative z-[1] mx-auto mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium text-ink-2 transition-colors hover:bg-[var(--surface-2)] hover:text-ink"
+        >
+          {showAll ? t('payments.invoices.showLess') : t('payments.invoices.showAll', { count: list.length })}
+          <ChevronDown className={cn('size-3.5 transition-transform duration-300', showAll && 'rotate-180')} />
+        </button>
+      )}
     </Card>
   )
 }
@@ -81,7 +104,7 @@ function EscrowJob({ job, open, onToggle }: { job: Job; open: boolean; onToggle:
   const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const total = job.milestones.reduce((a, m) => a + m.amount, 0)
   const released = job.milestones.filter((m) => m.status === 'released').reduce((a, m) => a + m.amount, 0)
-  const money = (v: number) => formatMoney(v, job.currency, lang)
+  const money = (v: number) => fmtMoney(v, job.currency, lang, 0)
 
   const release = async (m: Milestone) => {
     const ok = await confirm({

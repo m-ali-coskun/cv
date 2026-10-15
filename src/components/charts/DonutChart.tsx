@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT } from '@/lib/motion'
+import { EASE_OUT, FILTER_TWEEN } from '@/lib/motion'
 import { useLang } from '@/i18n'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { SrTable, compactNumber, seriesColor } from './shared'
@@ -189,7 +189,7 @@ export function DonutChart({
                 initial={{ opacity: 0, y: 8, filter: 'blur(6px)', scale: 0.92 }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
                 exit={{ opacity: 0, y: -8, filter: 'blur(6px)', scale: 0.92 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30, filter: FILTER_TWEEN }}
                 className="flex flex-col items-center px-4"
               >
                 {activeSeg ? (

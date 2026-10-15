@@ -5,7 +5,7 @@ import { DndContext, KeyboardSensor, PointerSensor, TouchSensor, closestCenter, 
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ArrowUpToLine, Copy, Eye, FolderOpen, GripVertical, Heart, LayoutGrid, List, MoreHorizontal, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react'
-import { EASE_OUT, spring } from '@/lib/motion'
+import { EASE_OUT, spring, FILTER_TWEEN } from '@/lib/motion'
 import { saveFile } from '@/lib/files'
 import { useT } from '@/i18n'
 import { useApp } from '@/store'
@@ -349,7 +349,7 @@ function SortableFolder({ item: it, index, size, fresh, actions, dragging }: { i
         style={{ maxWidth: size === 'sm' ? 210 : 290 }}
         initial={fresh ? { opacity: 0, scale: 0.6, y: 30, filter: 'blur(10px)' } : { opacity: 0, y: 16, filter: 'blur(6px)' }}
         animate={{ opacity: 1, scale: dragging ? 1.06 : 1, rotate: dragging ? -2.5 : 0, y: 0, filter: 'blur(0px)' }}
-        transition={fresh ? { ...spring.bouncy, delay: 0.15 } : { type: 'spring', stiffness: 380, damping: 26, delay: dragging ? 0 : Math.min(index, 8) * 0.04 }}
+        transition={fresh ? { ...spring.bouncy, delay: 0.15 } : { type: 'spring', stiffness: 380, damping: 26, filter: FILTER_TWEEN, delay: dragging ? 0 : Math.min(index, 8) * 0.04 }}
       >
         {fresh && (
           <motion.span

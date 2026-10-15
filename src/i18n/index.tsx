@@ -67,7 +67,10 @@ export function translate(lang: Lang, fullKey: string, vars?: TVars): string {
   let str: string | undefined
   if (vars && typeof vars.count === 'number') {
     const form = vars.count === 1 ? 'one' : 'other'
-    str = lookup(lang, nsName, `${key}_${form}`)
+    // Prefer the active language (plural form, then its base key — e.g. Turkish
+    // has no singular/plural split) before falling back to English plurals.
+    const own = NAMESPACES[nsName]?.[lang]
+    str = own?.[`${key}_${form}`] ?? own?.[key] ?? lookup(lang, nsName, `${key}_${form}`)
   }
   str ??= lookup(lang, nsName, key)
 

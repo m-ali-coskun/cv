@@ -1,7 +1,7 @@
 import { forwardRef, type ReactNode } from 'react'
 import { AnimatePresence, motion, type HTMLMotionProps } from 'motion/react'
 import { cn } from '@/lib/cn'
-import { EASE_OUT, item } from '@/lib/motion'
+import { EASE_OUT, item, FILTER_TWEEN } from '@/lib/motion'
 import { Avatar } from '@/components/ui/Avatar'
 import { Glass, type GlassVariant } from '@/components/ui/Glass'
 import type { PersonLite } from './context'
@@ -58,7 +58,7 @@ export function RollingText({ value, className, charClassName }: { value: string
                 initial={{ y: '-80%', opacity: 0, filter: 'blur(3px)' }}
                 animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
                 exit={{ y: '80%', opacity: 0, filter: 'blur(3px)' }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30, filter: FILTER_TWEEN }}
               >
                 {ch}
               </motion.span>
@@ -167,5 +167,5 @@ export const listItem = {
   initial: { opacity: 0, y: 12, scale: 0.98, filter: 'blur(4px)' },
   animate: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
   exit: { opacity: 0, scale: 0.96, filter: 'blur(4px)', transition: { duration: 0.18 } },
-  transition: { type: 'spring', stiffness: 380, damping: 32 },
+  transition: { type: 'spring', stiffness: 380, damping: 32, filter: FILTER_TWEEN },
 } as const

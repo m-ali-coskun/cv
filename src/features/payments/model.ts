@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { localeOf } from '@/lib/format'
 import { useApp } from '@/store'
 import { useDiscipline, useRole } from '@/store/selectors'
 import {
@@ -11,9 +12,12 @@ import {
   type Invoice,
   type InvoiceStatus,
   type Job,
+  type Lang,
   type Role,
 } from '@/store/types'
 import { DAY, historyCutoff, realRecords, startOfDayMs, syntheticRecords, ts, type WorkRecord } from '@/features/analytics/history'
+
+export { DAY, ts, startOfDayMs }
 
 export const INVOICE_STATUSES: InvoiceStatus[] = ['pending', 'overdue', 'escrow', 'paid', 'draft']
 
@@ -159,6 +163,11 @@ export function moneySeries(rows: InvoiceRow[], records: WorkRecord[], buckets: 
 }
 
 export const sum = (a: number[]) => a.reduce((x, y) => x + y, 0)
+
+/** Money with fixed decimals (invoices: always 2, round figures: 0). */
+export function money(amount: number, currency: 'EUR' | 'USD', lang: Lang, decimals = 2) {
+  return new Intl.NumberFormat(localeOf(lang), { style: 'currency', currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount)
+}
 
 export function pctDelta(cur: number, prev: number) {
   if (!prev) return cur ? 100 : 0

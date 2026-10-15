@@ -223,6 +223,8 @@ export interface AppActions {
   payInvoice: (invoiceId: string) => void
   sendInvoiceReminder: (invoiceId: string) => void
   createInvoice: (jobId: string) => Invoice | undefined
+  /** Edit an invoice (line items, amount, due date…) — used by the invoice builder. */
+  updateInvoice: (invoiceId: string, patch: Partial<Omit<Invoice, 'id'>>) => void
   requestPayout: (amount: number) => void
 
   // calendar
@@ -1008,6 +1010,8 @@ export const useApp = create<AppState>()(
           set((s) => ({ invoices: [inv, ...s.invoices] }))
           return inv
         },
+        updateInvoice: (invoiceId, patch) =>
+          set((s) => ({ invoices: s.invoices.map((i) => (i.id === invoiceId ? { ...i, ...patch } : i)) })),
         requestPayout: (amount) => {
           get().notify(
             {
@@ -1094,6 +1098,7 @@ if (typeof window !== 'undefined') {
 // Expose for debugging & e2e tests.
 if (typeof window !== 'undefined') {
   ;(window as unknown as { __designTab: typeof useApp }).__designTab = useApp
+  ;(window as unknown as { __designTabUI: typeof useUI }).__designTabUI = useUI
 }
 
 /** Close any running UI overlays when role changes (avoids stale views). */

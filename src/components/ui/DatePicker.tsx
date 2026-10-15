@@ -21,7 +21,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, Clock, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DATE_LOCALES } from '@/lib/dates'
 import { localeOf } from '@/lib/format'
-import { EASE_IOS } from '@/lib/motion'
+import { EASE_IOS, FILTER_TWEEN } from '@/lib/motion'
 import { useLang } from '@/i18n'
 import { useApp } from '@/store'
 import type { Lang } from '@/store/types'
@@ -630,7 +630,7 @@ export function DatePicker({
                 initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)', y: pos.bottom !== undefined ? 8 : -8 }}
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, filter: 'blur(4px)', transition: { duration: 0.14 } }}
-                transition={{ type: 'spring', stiffness: 460, damping: 32 }}
+                transition={{ type: 'spring', stiffness: 460, damping: 32, filter: FILTER_TWEEN }}
               >
                 {panel}
               </motion.div>

@@ -44,6 +44,8 @@ const ns: Namespace = {
     'notFound.title': 'Conversation not found',
     'notFound.body': 'It may belong to your other workspace, or it was removed.',
     'notFound.back': 'Back to inbox',
+    'notFound.otherTitle': 'This chat lives in your {workspace}',
+    'notFound.otherBody': 'Switch workspace to read and reply — your current inbox stays as it is.',
 
     'preview.files_one': '{count} file',
     'preview.files_other': '{count} files',
@@ -341,6 +343,8 @@ const ns: Namespace = {
     'notFound.title': 'Unterhaltung nicht gefunden',
     'notFound.body': 'Sie gehört vielleicht zu deinem anderen Workspace oder wurde entfernt.',
     'notFound.back': 'Zurück zum Posteingang',
+    'notFound.otherTitle': 'Dieser Chat gehört zu deinem Bereich „{workspace}“',
+    'notFound.otherBody': 'Wechsle den Workspace, um zu lesen und zu antworten – dein aktueller Posteingang bleibt unverändert.',
 
     'preview.files_one': '{count} Datei',
     'preview.files_other': '{count} Dateien',
@@ -638,6 +642,8 @@ const ns: Namespace = {
     'notFound.title': 'Sohbet bulunamadı',
     'notFound.body': 'Diğer çalışma alanına ait olabilir ya da kaldırılmış olabilir.',
     'notFound.back': 'Gelen kutusuna dön',
+    'notFound.otherTitle': 'Bu sohbet şu alanda: {workspace}',
+    'notFound.otherBody': 'Okumak ve yanıtlamak için çalışma alanını değiştir — mevcut gelen kutun olduğu gibi kalır.',
 
     'preview.files_one': '{count} dosya',
     'preview.files_other': '{count} dosya',

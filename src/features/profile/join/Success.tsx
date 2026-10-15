@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ArrowRight, Check, Compass, Copy, Heart, MessageCircle, Sparkles, UserPlus, Inbox } from 'lucide-react'
-import { EASE_OUT, item, spring, stagger } from '@/lib/motion'
+import { EASE_OUT, item, spring, stagger, FILTER_TWEEN } from '@/lib/motion'
 import { fireConfetti, fireSideCannons } from '@/lib/confetti'
 import { formatMoney } from '@/lib/format'
 import { useLang, useT } from '@/i18n'
@@ -76,7 +76,7 @@ export function Success({ designer: d, onAnother }: { designer: Designer; onAnot
                 className="inline-block whitespace-pre"
                 initial={{ opacity: 0, y: 40, rotate: 8, filter: 'blur(10px)' }}
                 animate={{ opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.2 + i * 0.03, type: 'spring', stiffness: 380, damping: 20 }}
+                transition={{ delay: 0.2 + i * 0.03, type: 'spring', stiffness: 380, damping: 20, filter: FILTER_TWEEN }}
               >
                 {ch}
               </motion.span>

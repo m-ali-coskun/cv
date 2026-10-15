@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { EASE_IOS } from '@/lib/motion'
+import { EASE_IOS, FILTER_TWEEN } from '@/lib/motion'
 
 export interface AnchorRect {
   left: number
@@ -139,7 +139,7 @@ export function AnchoredPopover({
             className="glass glass-strong fixed z-[78] overflow-hidden rounded-[24px] !bg-[color-mix(in_oklab,var(--surface)_90%,transparent)] shadow-[0_30px_80px_-24px_rgba(0,0,0,.45)]"
             style={{ left: pos?.left ?? -9999, top: pos?.top ?? 0, width, transformOrigin: pos?.origin ?? 'left top', visibility: pos ? 'visible' : 'hidden' }}
             initial={{ opacity: 0, scale: 0.86, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 460, damping: 30 } }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 460, damping: 30, filter: FILTER_TWEEN } }}
             exit={{ opacity: 0, scale: 0.94, filter: 'blur(4px)', transition: { duration: 0.14, ease: EASE_IOS } }}
           >
             <div className="relative z-[1] max-h-[min(560px,80vh)] overflow-y-auto">{children}</div>

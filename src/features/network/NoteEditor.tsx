@@ -6,6 +6,7 @@ import { useT } from '@/i18n'
 import { useApp } from '@/store'
 import { toast } from '@/store/toasts'
 import type { Match } from '@/store/types'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 const MAX = 280
 
@@ -42,7 +43,7 @@ export function NoteEditor({ match, compact, className }: { match: Match; compac
             initial={{ opacity: 0, scale: 0.97, filter: 'blur(4px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.12 } }}
-            transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 34, filter: FILTER_TWEEN }}
             className="rounded-[18px] border border-[var(--accent-line)] bg-[var(--surface)] p-2 shadow-[0_0_0_4px_var(--accent-softer)]"
           >
             <textarea

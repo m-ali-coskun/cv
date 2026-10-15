@@ -1171,6 +1171,7 @@ const ns: Namespace = {
 
     'stats.rate': 'Ücret',
     'stats.reviews': '{count} değerlendirme',
+    'stats.reviews_one': '1 değerlendirme',
     'stats.noReviews': 'Henüz değerlendirme yok',
     'stats.repeat': 'Tekrar gelen müşteri',
     'stats.since': 'Üyelik tarihi',
@@ -1236,6 +1237,7 @@ const ns: Namespace = {
     'insights.matches': 'Eşleşmeler',
     'insights.top': 'En çok beğenilen proje',
     'insights.next': '{count} hızlı iyileştirme kaldı',
+    'insights.next_one': '1 hızlı iyileştirme kaldı',
     'insights.fix': 'Sıradakini tamamla',
 
     'preview.live': 'Canlı önizleme',

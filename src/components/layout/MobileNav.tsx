@@ -34,12 +34,20 @@ export function MobileTabBar() {
                 <motion.span animate={active ? { y: [0, -3, 0] } : {}} transition={{ duration: 0.4 }} className="relative">
                   <Icon className="size-5" strokeWidth={1.8} />
                   {count > 0 && (
-                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6b3d] px-1 text-[9.5px] font-semibold text-white">
+                    <span
+                      className={cn(
+                        'absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9.5px] font-semibold',
+                        // orange = something to act on; plain totals (active jobs, matches) stay neutral
+                        it.count === 'activeJobs' || it.count === 'matches'
+                          ? 'bg-[var(--surface-3)] text-ink-2 ring-1 ring-[var(--line)]'
+                          : 'bg-[#ff6b3d] text-white',
+                      )}
+                    >
                       {count > 9 ? '9+' : count}
                     </span>
                   )}
                 </motion.span>
-                <span className="text-[10.5px] font-medium leading-none">{t(it.labelKey)}</span>
+                <span className="whitespace-nowrap text-[10.5px] font-medium leading-none max-[380px]:text-[9.5px] max-[380px]:tracking-[-0.01em]">{t(it.labelKey)}</span>
               </span>
             </NavLink>
           )
@@ -50,7 +58,7 @@ export function MobileTabBar() {
           className="relative z-[1] flex h-13 flex-1 flex-col items-center justify-center gap-0.5 text-ink-2"
         >
           <MoreHorizontal className="size-5" />
-          <span className="text-[10.5px] font-medium leading-none">{t('core.nav.more')}</span>
+          <span className="whitespace-nowrap text-[10.5px] font-medium leading-none max-[380px]:text-[9.5px]">{t('core.nav.more')}</span>
         </button>
       </div>
     </nav>

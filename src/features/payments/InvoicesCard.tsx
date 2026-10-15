@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowUpDown, BellRing, ChevronDown, CreditCard, Download, Eye, FileText, Loader2, LockOpen, Receipt, Search, X } from 'lucide-react'
+import { ArrowUpDown, BellRing, ChevronDown, CreditCard, Download, FileText, Loader2, LockOpen, Receipt, Search, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { dueLabel, shortDate } from '@/lib/dates'
 import { formatMoney } from '@/lib/format'
@@ -29,7 +29,7 @@ export interface InvoiceActions {
   onRemind?: (row: InvoiceRow) => void
 }
 
-const PAGE = 8
+const PAGE = 10
 
 export const InvoicesCard = forwardRef<
   HTMLDivElement,
@@ -144,10 +144,11 @@ export const InvoicesCard = forwardRef<
       </div>
 
       {/* table head (desktop) */}
-      <div className="relative z-[1] mt-4 hidden grid-cols-[88px_minmax(0,1fr)_150px_104px_112px_92px_136px] items-center gap-3 rounded-2xl bg-[var(--surface-2)] px-3 py-2.5 text-[12px] font-medium text-ink-3 lg:grid">
+      <div className="relative z-[1] mt-4 hidden grid-cols-[76px_minmax(0,1fr)_92px_104px_80px_132px] items-center gap-3 rounded-2xl bg-[var(--surface-2)] px-3 py-2.5 text-[12px] font-medium text-ink-3 lg:grid">
         <span>{t('payments.col.id')}</span>
-        <span>{t('payments.col.job')}</span>
-        <span>{role === 'client' ? t('core.common.designer') : t('core.common.client')}</span>
+        <span>
+          {t('payments.col.job')} · {role === 'client' ? t('core.common.designer') : t('core.common.client')}
+        </span>
         <span className="text-right">{t('payments.col.amount')}</span>
         <span>{t('core.common.status')}</span>
         <span>{t('payments.col.due')}</span>
@@ -226,8 +227,13 @@ const InvoiceListRow = forwardRef<HTMLLIElement, InvoiceActions & { row: Invoice
   }, [status])
 
   const money = formatMoney(inv.amount, inv.currency, lang)
-  const due = status === 'paid' && inv.paidAt ? t('payments.invoices.paidOn', { date: shortDate(inv.paidAt, lang) }) : shortDate(inv.dueAt, lang)
-  const dueHint = status === 'pending' || status === 'overdue' || status === 'escrow' ? dueLabel(inv.dueAt, lang) : null
+  const due = status === 'paid' && inv.paidAt ? shortDate(inv.paidAt, lang) : shortDate(inv.dueAt, lang)
+  const dueHint =
+    status === 'pending' || status === 'overdue' || status === 'escrow'
+      ? dueLabel(inv.dueAt, lang)
+      : status === 'paid' && inv.paidAt
+        ? t('payments.invoices.paidIn', { count: Math.max(0, Math.round((new Date(inv.paidAt).getTime() - new Date(inv.issuedAt).getTime()) / 864e5)) })
+        : null
 
   const primary = (() => {
     if (role === 'client') {
@@ -285,23 +291,22 @@ const InvoiceListRow = forwardRef<HTMLLIElement, InvoiceActions & { row: Invoice
         )}
       >
         {/* desktop row */}
-        <div className="hidden grid-cols-[88px_minmax(0,1fr)_150px_104px_112px_92px_136px] items-center gap-3 px-2 py-3 lg:grid">
+        <div className="hidden grid-cols-[76px_minmax(0,1fr)_92px_104px_80px_132px] items-center gap-3 px-2 py-3 lg:grid">
           <button type="button" onClick={() => onOpen(row)} className="text-left">
             <MonoId className="text-ink underline-offset-4 group-hover:underline">{inv.id}</MonoId>
           </button>
-          <button type="button" onClick={() => onOpen(row)} className="min-w-0 text-left">
-            <p className="truncate text-[13.5px] font-medium text-ink">{row.job?.title ?? inv.lineItems[0]?.label}</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-ink-3">
-              <DisciplineDot id={row.discipline} className="size-1.5" />
-              <MonoId className="text-[11.5px]">{inv.jobId}</MonoId>
-              <span>·</span>
-              <span className="truncate">{t('payments.invoices.items', { count: inv.lineItems.length })}</span>
-            </p>
+          <button type="button" onClick={() => onOpen(row)} className="flex min-w-0 items-center gap-2.5 text-left">
+            <PersonAvatar person={row.counterpart} size={30} />
+            <span className="min-w-0">
+              <span className="line-clamp-2 text-[13.5px] font-medium leading-snug text-ink">{row.job?.title ?? inv.lineItems[0]?.label}</span>
+              <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-ink-3">
+                <DisciplineDot id={row.discipline} className="size-1.5" />
+                <span className="truncate">{row.counterpart?.name}</span>
+                <span>·</span>
+                <MonoId className="shrink-0 text-[11.5px]">{inv.jobId}</MonoId>
+              </span>
+            </span>
           </button>
-          <span className="flex min-w-0 items-center gap-2">
-            <PersonAvatar person={row.counterpart} size={26} />
-            <span className="truncate text-[13px] text-ink-2">{row.counterpart?.name}</span>
-          </span>
           <span className="text-right font-mono text-[13.5px] font-medium tabular-nums">{money}</span>
           <InvoiceStatusPill status={status} />
           <span className="min-w-0">
@@ -310,9 +315,6 @@ const InvoiceListRow = forwardRef<HTMLLIElement, InvoiceActions & { row: Invoice
           </span>
           <span className="flex items-center justify-end gap-1">
             {primary}
-            <IconButton label={t('core.action.view')} variant="ghost" size="sm" onClick={() => onOpen(row)}>
-              <Eye className="size-4" />
-            </IconButton>
           </span>
         </div>
 

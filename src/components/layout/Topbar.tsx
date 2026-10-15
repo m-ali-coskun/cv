@@ -29,14 +29,15 @@ const TITLES: [prefix: string, key: string, designerKey?: string][] = [
   ['/profile', 'core.nav.profile'],
   ['/join', 'core.nav.join'],
   ['/settings', 'core.nav.settings'],
+  ['/kit', 'core.nav.kit'],
 ]
 
 /** Animated per-letter greeting: "Good morning, Ali" */
-function Greeting() {
+function Greeting({ className }: { className?: string }) {
   const t = useT()
   const text = t(`core.greeting.${greetingKey()}`, { name: ME_NAME })
   return (
-    <motion.h1 key={text} className="truncate text-[26px] font-medium tracking-[-0.035em] text-ink sm:text-[32px]" aria-label={text}>
+    <motion.h1 key={text} className={cn('truncate text-[26px] font-medium tracking-[-0.035em] text-ink sm:text-[32px]', className)} aria-label={text}>
       {text.split('').map((ch, i) => (
         <motion.span
           key={i}
@@ -80,7 +81,9 @@ export function Topbar() {
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div className="hidden min-w-0 items-center gap-3 sm:flex">
           {isOverview ? (
-            <Greeting />
+            // Per-letter inline-blocks: any fractional flex shrink would ellipsize the whole name,
+            // so the greeting keeps its width and the attention pill (shrink-[20]) gives way first.
+            <Greeting className="max-w-full shrink-0 md:max-w-[calc(100%-60px)]" />
           ) : (
             <motion.h1
               key={title}
@@ -102,10 +105,12 @@ export function Topbar() {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => document.getElementById('attention')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                className="glass-accent hidden h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13.5px] font-medium md:inline-flex"
+                title={attention.length ? t('core.topbar.attention', { count: attention.length }) : t('core.topbar.allClear')}
+                // shrinks (and truncates) before the greeting does, so the name always stays visible
+                className="glass-accent hidden h-9 min-w-0 shrink-[20] items-center gap-2 rounded-full px-3.5 text-[13.5px] font-medium md:inline-flex"
               >
-                {attention.length ? <AlertTriangle className="size-4" /> : <CheckCircle2 className="size-4" />}
-                {attention.length ? t('core.topbar.attention', { count: attention.length }) : t('core.topbar.allClear')}
+                {attention.length ? <AlertTriangle className="size-4 shrink-0" /> : <CheckCircle2 className="size-4 shrink-0" />}
+                <span className="truncate">{attention.length ? t('core.topbar.attention', { count: attention.length }) : t('core.topbar.allClear')}</span>
               </motion.button>
             )}
           </AnimatePresence>

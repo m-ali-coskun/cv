@@ -4,6 +4,7 @@ import { Plus, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLang } from '@/i18n'
 import type { Lang } from '@/store/types'
+import { FILTER_TWEEN } from '@/lib/motion'
 
 const STR: Record<Lang, Record<string, string>> = {
   en: { placeholder: 'Type and press Enter', remove: 'Remove', create: 'Add “{v}”', full: 'Limit reached', suggestions: 'Suggestions', none: 'No matches' },
@@ -185,7 +186,7 @@ export function TagInput({
                 initial={{ opacity: 0, scale: 0.6, filter: 'blur(4px)' }}
                 animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', x: shake === tag ? [0, -5, 5, -3, 3, 0] : 0 }}
                 exit={{ opacity: 0, scale: 0.6, filter: 'blur(4px)', transition: { duration: 0.15 } }}
-                transition={{ type: 'spring', stiffness: 520, damping: 28 }}
+                transition={{ type: 'spring', stiffness: 520, damping: 28, filter: FILTER_TWEEN }}
                 className={cn(
                   'inline-flex h-7.5 items-center gap-1 rounded-full pl-3 pr-1 text-[13px] font-medium transition-colors',
                   selected ? 'bg-ink text-[var(--surface)] dark:bg-accent dark:text-accent-ink' : 'bg-accent-soft text-ink',
@@ -249,7 +250,7 @@ export function TagInput({
             initial={{ opacity: 0, y: -6, scale: 0.97, filter: 'blur(4px)' }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.12 } }}
-            transition={{ type: 'spring', stiffness: 520, damping: 34 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 34, filter: FILTER_TWEEN }}
             className="glass glass-strong absolute inset-x-0 top-[calc(100%+6px)] z-[60] max-h-64 origin-top overflow-y-auto rounded-[18px] !bg-[color-mix(in_oklab,var(--surface)_90%,transparent)] p-1.5 shadow-[0_24px_60px_-20px_rgba(0,0,0,.3)]"
           >
             <li className="relative z-[1] px-2.5 pb-1 pt-1 font-mono text-[10.5px] uppercase tracking-[0.05em] text-ink-3">{options.length ? s.suggestions : s.none}</li>

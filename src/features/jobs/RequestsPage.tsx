@@ -22,7 +22,7 @@ import { useApp } from '@/store'
 import { useMyJobs, useRole } from '@/store/selectors'
 import type { Job } from '@/store/types'
 import { toast } from '@/store/toasts'
-import { EASE_OUT, item, spring, stagger } from '@/lib/motion'
+import { EASE_OUT, item, spring, stagger, FILTER_TWEEN } from '@/lib/motion'
 import { fireConfetti } from '@/lib/confetti'
 import { Button } from '@/components/ui/Button'
 import { Segmented } from '@/components/ui/Segmented'
@@ -253,7 +253,7 @@ function DesignerInbox() {
                     scale: 1,
                     rotateX: 0,
                     filter: 'blur(0px)',
-                    transition: fresh.has(j.id) ? { type: 'spring', stiffness: 220, damping: 18 } : { duration: 0.55, ease: EASE_OUT, delay: Math.min(i, 5) * 0.06 },
+                    transition: fresh.has(j.id) ? { type: 'spring', stiffness: 220, damping: 18, filter: FILTER_TWEEN } : { duration: 0.55, ease: EASE_OUT, delay: Math.min(i, 5) * 0.06 },
                   }}
                   exit="exit"
                   transition={spring.smooth}

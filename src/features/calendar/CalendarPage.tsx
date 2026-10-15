@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { addDays, addMinutes, addMonths, addWeeks, endOfWeek, getISOWeek, isSameDay, isSameMonth, isSameWeek, setHours, startOfDay, startOfWeek } from 'date-fns'
 import { useApp } from '@/store'
@@ -45,6 +45,7 @@ export default function CalendarPage() {
   const mobile = useIsMobile()
   const now = useNow(30_000)
   const [params, setParams] = useSearchParams()
+  const { pathname } = useLocation()
 
   const [prefs, setPrefsState] = useState<CalPrefs>(loadPrefs)
   const setPrefs = useCallback((patch: Partial<CalPrefs>) => {
@@ -75,7 +76,8 @@ export default function CalendarPage() {
 
   // ── deep links: /calendar?new=1&job=DT-2841&date=2026-10-20&view=week
   useEffect(() => {
-    if (![...params.keys()].length) return
+    // pathname guard: if this page mounts while already exiting, the params belong to the next route
+    if (pathname !== '/calendar' || ![...params.keys()].length) return
     const date = params.get('date')
     const v = params.get('view') as CalView | null
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
