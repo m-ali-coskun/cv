@@ -346,6 +346,8 @@ const ns: Namespace = {
     'creq.rebrief': 'New brief',
     'creq.emptyTitle': 'No open briefs',
     'creq.emptyBody': 'Every brief you sent has been answered. Start a new one whenever you’re ready.',
+    'creq.allAnswered': 'Nothing waiting on a designer',
+    'creq.allAnsweredBody': 'All your briefs have an answer — send a new one to keep work moving.',
   },
 
   de: {
@@ -692,6 +694,8 @@ const ns: Namespace = {
     'creq.rebrief': 'Neues Briefing',
     'creq.emptyTitle': 'Keine offenen Briefings',
     'creq.emptyBody': 'Alle deine Briefings wurden beantwortet. Starte ein neues, wann immer du bereit bist.',
+    'creq.allAnswered': 'Nichts wartet auf Designer:innen',
+    'creq.allAnsweredBody': 'Alle Briefings sind beantwortet — schick ein neues, damit es weitergeht.',
   },
 
   tr: {
@@ -1038,6 +1042,8 @@ const ns: Namespace = {
     'creq.rebrief': 'Yeni brief',
     'creq.emptyTitle': 'Açık brief yok',
     'creq.emptyBody': 'Gönderdiğin tüm brief’ler yanıtlandı. Hazır olduğunda yenisini başlat.',
+    'creq.allAnswered': 'Tasarımcı bekleyen brief yok',
+    'creq.allAnsweredBody': 'Tüm brief’lerin yanıtlandı — işler aksamasın diye yenisini gönder.',
   },
 }
 

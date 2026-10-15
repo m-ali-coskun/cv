@@ -37,7 +37,8 @@ export function Journey() {
   const fill = stopped ? 0 : approved ? 1 : n > 1 ? cur / (n - 1) : 0
   const since = reachedAt(job, job.status) ?? job.updatedAt
   const inStageMin = Math.max(0, (now - new Date(since).getTime()) / 60000)
-  const round = job.revisions.length > 0 && !approved && cur < steps.indexOf('revisions') ? job.versions.length + 1 : 0
+  // feedback round currently in play: the version under review, or the one being worked on next
+  const round = job.revisions.length > 0 && !approved && !stopped ? (job.status === 'in_review' ? job.versions.length : job.versions.length + 1) : 0
 
   return (
     <Card className="overflow-hidden">

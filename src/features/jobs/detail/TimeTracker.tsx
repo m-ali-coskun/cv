@@ -2,13 +2,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Pause, Play, Plus, Timer } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { spring } from '@/lib/motion'
-import { formatMoney } from '@/lib/format'
 import { useLang, useT } from '@/i18n'
 import { useApp } from '@/store'
 import { toast } from '@/store/toasts'
 import { useJobCtx } from './context'
 import { useDuration, useNow } from './hooks'
-import { hms, trackedSeconds } from './model'
+import { hms, moneyWhole, trackedSeconds } from './model'
 import { LiveDot, RollingText } from './ui'
 
 /**
@@ -80,7 +79,7 @@ export function TimeTracker({ className, compact }: { className?: string; compac
             <RollingText value={hms(secs)} className={cn('font-medium leading-none tracking-[-0.02em] text-on-night', compact ? 'text-[28px]' : 'text-[34px]')} />
             <div className="mt-1.5 font-mono text-[11.5px] text-on-night/60">
               {t('job.timer.total', { time: dur(secs / 60) })}
-              {rate > 0 && <> · {t('job.timer.rate', { rate: formatMoney(Math.round(rate), job.currency, lang) })}</>}
+              {rate > 0 && <> · {t('job.timer.rate', { rate: moneyWhole(rate, job.currency, lang) })}</>}
             </div>
           </div>
           {editable && (

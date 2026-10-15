@@ -386,7 +386,7 @@ function ApproveModal({ open, onClose }: MP) {
               fireConfetti({ from: e.currentTarget, particleCount: 220 })
               fireStars({ origin: { x: 0.5, y: 0.35 } })
               fireSideCannons(900)
-              toast({ title: t('job.approve.done'), description: t('job.approve.doneBody', { amount: formatMoney(release, job.currency, lang), name: counterpart?.name ?? '' }), tone: 'success' })
+              toast({ title: t('job.approve.done'), description: release ? t('job.approve.doneBody', { amount: formatMoney(release, job.currency, lang), name: counterpart?.name ?? '' }) : t('job.approve.allReleased'), tone: 'success' })
               onClose()
             }}
           >
@@ -402,11 +402,11 @@ function ApproveModal({ open, onClose }: MP) {
         </div>
         <div className="glass-accent rounded-[20px] p-4">
           <div className="relative z-[1]">
-            <div className="text-[12.5px] font-medium opacity-75">{t('job.approve.release')}</div>
+            <div className="text-[12.5px] font-medium opacity-75">{release ? t('job.approve.release') : t('job.approve.paidTotal')}</div>
             <div className="mt-1 text-[34px] font-medium leading-none tracking-[-0.03em]">
-              <AnimatedCounter value={release} currency={job.currency} startOnView={false} />
+              <AnimatedCounter value={release || job.budget} currency={job.currency} startOnView={false} />
             </div>
-            <div className="mt-2 text-[12.5px] opacity-75">{t('job.approve.releaseHint', { name: counterpart?.name ?? '' })}</div>
+            <div className="mt-2 text-[12.5px] opacity-75">{release ? t('job.approve.releaseHint', { name: counterpart?.name ?? '' }) : t('job.approve.allReleased')}</div>
           </div>
         </div>
       </div>
@@ -455,7 +455,8 @@ function RevisionModal({ open, onClose }: MP) {
   useOnOpen(open, () => {
     setVersionId(job.versions[job.versions.length - 1]?.id)
     setSummary('')
-    setRows([row()])
+    // keep the pristine row (same key) so nothing animates out while the user starts typing
+    setRows((prev) => (prev.length === 1 && !prev[0].text ? prev : [row()]))
   })
   useEffect(() => {
     if (focusNext.current) {
@@ -468,7 +469,8 @@ function RevisionModal({ open, onClose }: MP) {
     const r = row(text)
     focusNext.current = r.id
     setRows((prev) => {
-      const i = after ? prev.findIndex((x) => x.id === after) : prev.length - 1
+      const found = after ? prev.findIndex((x) => x.id === after) : -1
+      const i = found >= 0 ? found : prev.length - 1
       const next = [...prev]
       next.splice(i + 1, 0, r)
       return next

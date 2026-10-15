@@ -49,8 +49,8 @@ export function CounterReviewCard({ job }: { job: Job }) {
   return (
     <motion.article className="card relative overflow-hidden p-4 sm:p-5">
       <div className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-[var(--info)] opacity-[0.08] blur-2xl" />
-      <div className="relative z-[1] flex flex-col gap-4 lg:flex-row lg:items-center">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className="relative z-[1] flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
+        <div className="flex min-w-0 flex-1 items-start gap-3 lg:min-w-[340px]">
           <Avatar seed={designer?.avatarSeed ?? job.designerId} media={designer?.avatar} size={46} />
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-3">
@@ -84,7 +84,7 @@ export function CounterReviewCard({ job }: { job: Job }) {
             {t('core.common.daysShort', { count: diff })}
           </span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 lg:ml-auto">
           <Button icon={<CalendarCheck className="size-4" />} onClick={() => cmd.answerCounter(job, true)} className="flex-1 lg:flex-none">
             {t('jobs.menu.acceptDate')}
           </Button>

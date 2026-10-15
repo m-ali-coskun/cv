@@ -477,7 +477,7 @@ function ClientReview() {
         icon={<Eye />}
         tone="warning"
         title={t('job.act.c.reviewTitle', { n: latest?.version ?? 1, name: counterpart?.name ?? '' })}
-        body={t('job.act.c.reviewBody', { amount: formatMoney(escrow || job.budget, job.currency, lang) })}
+        body={escrow ? t('job.act.c.reviewBody', { amount: formatMoney(escrow, job.currency, lang) }) : t('job.act.c.reviewBodyPaid')}
       />
       <div className="relative z-[1] mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">

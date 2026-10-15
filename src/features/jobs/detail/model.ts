@@ -23,7 +23,8 @@ import {
 } from 'lucide-react'
 import { GenerativeArt } from '@/components/art/GenerativeArt'
 import { loadFileUrl } from '@/lib/files'
-import type { AssetKind, Job, JobStatus, MediaRef, TimelineKind } from '@/store/types'
+import { localeOf } from '@/lib/format'
+import type { AssetKind, Job, JobStatus, Lang, MediaRef, TimelineKind } from '@/store/types'
 
 /** The happy-path pipeline shown in the status journey. */
 export const JOURNEY: JobStatus[] = ['requested', 'queued', 'in_progress', 'final_touches', 'in_review', 'revisions', 'approved']
@@ -285,4 +286,9 @@ export function briefMarkdown(job: Job, names: { client: string; designer: strin
     '',
     job.tags.length ? `Tags: ${job.tags.map((t) => `#${t}`).join(' ')}` : '',
   ].join('\n')
+}
+
+/** Currency without cents — keeps €720 and €1,680 visually consistent. */
+export function moneyWhole(amount: number, currency: 'EUR' | 'USD', lang: Lang) {
+  return new Intl.NumberFormat(localeOf(lang), { style: 'currency', currency, maximumFractionDigits: 0 }).format(Math.round(amount))
 }

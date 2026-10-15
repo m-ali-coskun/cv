@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ArrowDownUp,
@@ -61,7 +61,15 @@ function DesignerInbox() {
   const discipline = useApp((s) => s.settings.discipline)
   const setDiscipline = useApp((s) => s.setDiscipline)
   const spawn = useApp((s) => s.spawnIncomingRequest)
-  const [tab, setTab] = useState<Tab>('pending')
+  const [params, setParams] = useSearchParams()
+  // ?tab=counter|declined deep links (notifications, overview cards)
+  const tab: Tab = params.get('tab') === 'counter' || params.get('tab') === 'declined' ? (params.get('tab') as Tab) : 'pending'
+  const setTab = (v: Tab) => {
+    const p = new URLSearchParams(params)
+    if (v === 'pending') p.delete('tab')
+    else p.set('tab', v)
+    setParams(p, { replace: true })
+  }
   const [sort, setSort] = useState<Sort>('newest')
   const [fresh, setFresh] = useState<Set<string>>(() => new Set())
   const outcome = useRef<RequestOutcome>('accepted')
@@ -390,6 +398,25 @@ function ClientOutbox() {
             }
           />
         </div>
+      )}
+
+      {!empty && !counters.length && !waiting.length && (
+        <motion.div
+          initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: EASE_OUT } }}
+          className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:p-5"
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-success-soft text-[var(--success)]">
+            <Check className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-medium tracking-[-0.01em]">{t('jobs.creq.allAnswered')}</p>
+            <p className="text-[12.5px] text-ink-3">{t('jobs.creq.allAnsweredBody')}</p>
+          </div>
+          <Button icon={<Plus className="size-4" />} onClick={() => navigate('/brief/new')} className="self-start sm:self-auto">
+            {t('jobs.newBrief')}
+          </Button>
+        </motion.div>
       )}
 
       {counters.length > 0 && (

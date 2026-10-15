@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, useAnimate, useMotionValue, useSpring } from 'motion/react'
 import {
@@ -170,6 +171,8 @@ export function BoardView({ rows, role, columns }: { rows: JobRow[]; role: Role;
       sensors={sensors}
       collisionDetection={collision}
       measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      // only scroll when the pointer is really at an edge (the page itself is tall)
+      autoScroll={{ threshold: { x: 0.14, y: 0.1 }, acceleration: 4, interval: 8 }}
       onDragStart={onDragStart}
       onDragMove={onDragMove}
       onDragOver={onDragOver}
@@ -188,7 +191,11 @@ export function BoardView({ rows, role, columns }: { rows: JobRow[]; role: Role;
       <ColumnPager columns={columns} byStatus={byStatus} scroller={scroller} />
       <div
         ref={scroller}
-        className="no-scrollbar relative -mx-2.5 flex items-start snap-x snap-mandatory scroll-px-2.5 gap-3 overflow-x-auto px-2.5 pb-4 pt-1 sm:mx-0 sm:items-stretch sm:px-0 lg:snap-none"
+        className={cn(
+          'no-scrollbar relative -mx-2.5 flex items-start scroll-px-2.5 gap-3 overflow-x-auto px-2.5 pb-4 pt-1 sm:mx-0 sm:items-stretch sm:px-0 lg:snap-none',
+          // mandatory snapping turns every auto-scroll tick into a full-column jump while dragging
+          active ? 'snap-none' : 'snap-x snap-mandatory',
+        )}
       >
         {columns.map((s, i) => (
           <BoardColumn
@@ -209,20 +216,25 @@ export function BoardView({ rows, role, columns }: { rows: JobRow[]; role: Role;
           />
         ))}
       </div>
-      <DragOverlay dropAnimation={dropAnimation} zIndex={90}>
-        {active ? (
-          <motion.div
-            style={{ rotate: tiltS }}
-            initial={{ scale: 1, y: 0 }}
-            animate={{ scale: 1.045, y: -6 }}
-            transition={spring.snappy}
-            className="origin-[50%_30%]"
-          >
-            <JobCard row={active} role={role} state="overlay" showCover={covers} />
-            <OverlayHint verdict={overStatus ? verdicts.get(overStatus) : undefined} status={overStatus} />
-          </motion.div>
-        ) : null}
-      </DragOverlay>
+      {/* Portal: the page wrapper animates transform/filter, which would become the
+          containing block of this position:fixed overlay and offset it from the pointer. */}
+      {createPortal(
+        <DragOverlay dropAnimation={dropAnimation} zIndex={90}>
+          {active ? (
+            <motion.div
+              style={{ rotate: tiltS }}
+              initial={{ scale: 1, y: 0 }}
+              animate={{ scale: 1.045, y: -6 }}
+              transition={spring.snappy}
+              className="origin-[50%_30%]"
+            >
+              <JobCard row={active} role={role} state="overlay" showCover={covers} />
+              <OverlayHint verdict={overStatus ? verdicts.get(overStatus) : undefined} status={overStatus} />
+            </motion.div>
+          ) : null}
+        </DragOverlay>,
+        document.body,
+      )}
     </DndContext>
   )
 }

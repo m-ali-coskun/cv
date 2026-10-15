@@ -379,13 +379,12 @@ function StarButton({ starred, onToggle, label }: { starred: boolean; onToggle: 
 /** "Live" pill that flashes "Updated" whenever the job changes (simulation or you). */
 function LiveBadge({ updatedAt }: { updatedAt: string }) {
   const t = useT()
-  const first = useRef(true)
+  // compare with the last seen value (StrictMode-safe, unlike a "first run" flag)
+  const seen = useRef(updatedAt)
   const [flash, setFlash] = useState(false)
   useEffect(() => {
-    if (first.current) {
-      first.current = false
-      return
-    }
+    if (seen.current === updatedAt) return
+    seen.current = updatedAt
     setFlash(true)
     const id = window.setTimeout(() => setFlash(false), 2400)
     return () => window.clearTimeout(id)
